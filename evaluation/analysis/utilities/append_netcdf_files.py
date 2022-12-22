@@ -15,7 +15,7 @@
 ##      Only variables "varA" and "varB" in the input files "input_files_????.nc" in
 ##      the directory "source_dir" will be copied (if they do not have time axis) or
 ##      catenated (if they have time axis) into a new file "target.nc". 
-## Author: Zhichang Guo, email: Zhichang.Guo@noaa.gov
+## Author: Zhichang Guo, email: Zhichang.Guo@noaa.gov or Guo.Zhichang@gmail.com
 #########################################################################################
 import glob
 import argparse
