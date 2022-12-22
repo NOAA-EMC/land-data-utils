@@ -9,7 +9,9 @@ Repository structure:
 	  - `domains` : scripts to create SCRIP files for destination grids
 	  - `gleam` : scripts to regrid GLEAM data
   - `analysis` : scripts for evaluation
-    - `water_budget` : 
+    - `water_budget` : scripts to display water budget terms
     - `energy_budget` : scripts to analyze energy budget
+    - `ufs-landDriver-pps` : scripts to post-process the UFS land driver outputs
+    - `utilities`: collection of utility scripts
 - `forcing` : scripts to manipulate and regrid forcing data
   - `gefs` : scripts to create weights file for land model regridding
