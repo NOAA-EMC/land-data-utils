@@ -15,3 +15,5 @@ Collection of scripts and instructions for utility scripts.
 - monthly_average_ncfiles.py: calculate monthly average from hourly or daily data stored in one or multiple netcdf files
 
 - append_netcdf_files.py: catenate variables from multiple files according to time axis and output them to a single file
+
+- find_nearest_point.py: find the nearest grid point index with certain criteria, for example, only land points or certain vegetation category.
