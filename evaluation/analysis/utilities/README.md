@@ -11,3 +11,7 @@ Collection of scripts and instructions for utility scripts.
 - copy_variable_nc.py: copy variables from one netcdf file to another;
 
 - rm_variables_nc.py: copy one netcdf file to another except the specified variables;
+
+- monthly_average_ncfiles.py: calculate monthly average from hourly or daily data stored in one or multiple netcdf files
+
+- append_netcdf_files.py: catenate variables from multiple files according to time axis and output them to a single file
