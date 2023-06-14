@@ -8,6 +8,10 @@
 ##      The code will create time series plots with data stored in file_name.nc for the point with
 ##      land index 65, the dynamic vegetation option for running noahmp is 4, the static information 
 ##      can be found in the static file static_file.nc, and the output figure is output.png;
+##   3. python energy_fluxes_timeseries.py -i file_name.nc -p 65 -v 4 -t 2011070500,2011070523
+##      The code will create time series plots with data stored in file_name.nc for the point with
+##      land index 65, the dynamic vegetation option for running noahmp is 4. The values are plotted
+##      for the period from 2011-07-05 00:00 and 2011-07-05 23:00.
 ## Author: Zhichang Guo and Michael Barlage, contact: Zhichang.Guo@noaa.gov
 #####################################################################################################
 import argparse
@@ -22,7 +26,7 @@ from datetime import timedelta
 from datetime import datetime
 from netCDF4 import Dataset
 
-def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
+def gen_figure(ifname, sfname, ofname, title, lpt, dveg, trange):
 #define y-unit to x-unit ratio
   ratio   = 0.6 #0.5
   height  = 7.4
@@ -35,6 +39,7 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
   ip -= 1
   sub_titles = ["Bare", "Under-canopy", "Leaf", "Vegetation", "Bare", "Under-canopy", "Leaf", "Vegetation", "Grid", "Grid", "Grid", "Grid"]
   info = ''
+# print("Read in data")
   if not sfname == '':
     geonc = Dataset(sfname, "r")
     lons = geonc.variables["longitude"][:]
@@ -59,7 +64,7 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
   hours = tds
   days = tds/24
   dateFmt = '%d'
-  if days > 1:
+  if days > 12:
     dateFmt = '%d'
   else:
     dateFmt = '%HZ'
@@ -69,6 +74,7 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
   else:
     print("Input file:  ",ifnames[0])
   print("iloc: ",ip)
+  tranges = trange.split(',')
   dataX = np.array([])
   timeX = np.array([])
   dataY = np.array([])
@@ -121,7 +127,17 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
       lwdn   = np.array([])
       lwup   = np.array([])
 
-    timetmp = datanc.variables["time"][:]
+    timetmp  = datanc.variables["time"][:]
+    units    = datanc.variables['time'].getncattr('units')
+    words    = units.split(' ')
+    time_ini = datetime.strptime(words[2]+' '+words[3], '%Y-%m-%d %H:%M:%S')
+    if len(tranges) < 2 or (tranges[0] == '' and tranges[1] == ''):
+      time_start = time_ini + timedelta(seconds=timetmp[0])
+      time_stop  = time_ini + timedelta(seconds=timetmp[len(timetmp)-1])
+    else:
+      time_start = datetime.strptime(tranges[0], '%Y%m%d%H')
+      time_stop  = datetime.strptime(tranges[1], '%Y%m%d%H')
+
     myFmt = mdates.DateFormatter(dateFmt)
     if dveg in [ "4", "5", "9", "10" ]:
       fvegtmp = datanc.variables["max_vegetation_frac"][...]
@@ -159,88 +175,92 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
     pahtmp   = datanc.variables["precip_adv_heat_total"][...]
 
     for tid_f in range(tds_f):
-      dataX  = np.append(dataX,float(tid+1))
-      timeX  = np.append(timeX,datetime(year=1970, month=1, day=1, hour=0, minute=0, second=0) +
-                                       timedelta(seconds=timetmp[tid_f]))
-      fvegt  = fvegtmp[tid_f][ip]
-      sag    = np.append(sag,sagtmp[tid_f][ip])
-      irb    = np.append(irb,irbtmp[tid_f][ip])
-      shb    = np.append(shb,shbtmp[tid_f][ip])
-      evb    = np.append(evb,evbtmp[tid_f][ip])
-      ghb    = np.append(ghb,ghbtmp[tid_f][ip])
-      pahb   = np.append(pahb,pahbtmp[tid_f][ip])
-      resid1t= sagtmp[tid_f][ip] - irbtmp[tid_f][ip] - shbtmp[tid_f][ip]
-      resid1t= resid1t - evbtmp[tid_f][ip] - ghbtmp[tid_f][ip] + pahbtmp[tid_f][ip]
-      resid1 = np.append(resid1,resid1t)
+      time_cur = time_ini + timedelta(seconds=timetmp[tid_f])
+      if time_cur >= time_start and time_cur <= time_stop:
+        dataX  = np.append(dataX,float(tid+1))
+        timeX  = np.append(timeX,time_cur)
+        fvegt  = fvegtmp[tid_f][ip]
+        sag    = np.append(sag,sagtmp[tid_f][ip])
+        irb    = np.append(irb,irbtmp[tid_f][ip])
+        shb    = np.append(shb,shbtmp[tid_f][ip])
+        evb    = np.append(evb,evbtmp[tid_f][ip])
+        ghb    = np.append(ghb,ghbtmp[tid_f][ip])
+        pahb   = np.append(pahb,pahbtmp[tid_f][ip])
+        resid1t= sagtmp[tid_f][ip] - irbtmp[tid_f][ip] - shbtmp[tid_f][ip]
+        resid1t= resid1t - evbtmp[tid_f][ip] - ghbtmp[tid_f][ip] + pahbtmp[tid_f][ip]
+        resid1 = np.append(resid1,resid1t)
 
-      irg    = np.append(irg,irgtmp[tid_f][ip])
-      shg    = np.append(shg,shgtmp[tid_f][ip])
-      evg    = np.append(evg,evgtmp[tid_f][ip])
-      ghv    = np.append(ghv,ghvtmp[tid_f][ip])
-      pahg   = np.append(pahg,pahgtmp[tid_f][ip])
-      resid2t= sagtmp[tid_f][ip] - irgtmp[tid_f][ip] - shgtmp[tid_f][ip]
-      resid2t= resid2t - evgtmp[tid_f][ip] - ghvtmp[tid_f][ip] + pahgtmp[tid_f][ip]
-      resid2 = np.append(resid2,resid2t)
+        irg    = np.append(irg,irgtmp[tid_f][ip])
+        shg    = np.append(shg,shgtmp[tid_f][ip])
+        evg    = np.append(evg,evgtmp[tid_f][ip])
+        ghv    = np.append(ghv,ghvtmp[tid_f][ip])
+        pahg   = np.append(pahg,pahgtmp[tid_f][ip])
+        resid2t= sagtmp[tid_f][ip] - irgtmp[tid_f][ip] - shgtmp[tid_f][ip]
+        resid2t= resid2t - evgtmp[tid_f][ip] - ghvtmp[tid_f][ip] + pahgtmp[tid_f][ip]
+        resid2 = np.append(resid2,resid2t)
 
-      savt   = savtmp[tid_f][ip]
-      irct   = irctmp[tid_f][ip]
-      shct   = shctmp[tid_f][ip]
-      evct   = evctmp[tid_f][ip]
-      trt    = trtmp[tid_f][ip]
-      sav    = np.append(sav,savt)
-      irc    = np.append(irc,irct)
-      shc    = np.append(shc,shct)
-      evc    = np.append(evc,evct)
-      tr     = np.append(tr,trt)
-      pahvt  = pahvtmp[tid_f][ip]
-      pahv   = np.append(pahv,pahvt)
-      canhs  = np.append(canhs,canhstmp[tid_f][ip])
-      resid4t= savt-irct-shct-evct-trt+pahvt-canhstmp[tid_f][ip]
-      resid4 = np.append(resid4,resid4t)
+        savt   = savtmp[tid_f][ip]
+        irct   = irctmp[tid_f][ip]
+        shct   = shctmp[tid_f][ip]
+        evct   = evctmp[tid_f][ip]
+        trt    = trtmp[tid_f][ip]
+        sav    = np.append(sav,savt)
+        irc    = np.append(irc,irct)
+        shc    = np.append(shc,shct)
+        evc    = np.append(evc,evct)
+        tr     = np.append(tr,trt)
+        pahvt  = pahvtmp[tid_f][ip]
+        pahv   = np.append(pahv,pahvt)
+        canhs  = np.append(canhs,canhstmp[tid_f][ip])
+        resid4t= savt-irct-shct-evct-trt+pahvt-canhstmp[tid_f][ip]
+        resid4 = np.append(resid4,resid4t)
 
-      swvegt = savt+sagtmp[tid_f][ip]
-      irvegt = irct+irgtmp[tid_f][ip]
-      shvegt = shct+shgtmp[tid_f][ip]
-      lhvegt = (evct+trt)+evgtmp[tid_f][ip]
-      swveg  = np.append(swveg,swvegt)
-      irveg  = np.append(irveg,irvegt)
-      shveg  = np.append(shveg,shvegt)
-      lhveg  = np.append(lhveg,lhvegt)
-      ghveg  = np.append(ghveg,ghvtmp[tid_f][ip])
-      resid5t= swvegt - irvegt - shvegt - lhvegt - ghvtmp[tid_f][ip]
-      resid5t= resid5t + pahgtmp[tid_f][ip] + pahvt-canhstmp[tid_f][ip]
-      resid5 = np.append(resid5,resid5t)
+        swvegt = savt+sagtmp[tid_f][ip]
+        irvegt = irct+irgtmp[tid_f][ip]
+        shvegt = shct+shgtmp[tid_f][ip]
+        lhvegt = (evct+trt)+evgtmp[tid_f][ip]
+        swveg  = np.append(swveg,swvegt)
+        irveg  = np.append(irveg,irvegt)
+        shveg  = np.append(shveg,shvegt)
+        lhveg  = np.append(lhveg,lhvegt)
+        ghveg  = np.append(ghveg,ghvtmp[tid_f][ip])
+        resid5t= swvegt - irvegt - shvegt - lhvegt - ghvtmp[tid_f][ip]
+        resid5t= resid5t + pahgtmp[tid_f][ip] + pahvt-canhstmp[tid_f][ip]
+        resid5 = np.append(resid5,resid5t)
 
-      swupt  = albtmp[tid_f][ip]*swdntmp[tid_f][ip]
-      swnett = swdntmp[tid_f][ip] - swupt
-      swnet  = np.append(swnet,swnett)
-      lwdnt  = lwdntmp[tid_f][ip]*emistmp[tid_f][ip]
-      lwupt  = 5.67e-8 * emistmp[tid_f][ip] * lwuptmp[tid_f][ip]**4
-      ghft   = -ghftmp[tid_f][ip]
-      lwnett = fvegtmp[tid_f][ip]*irgtmp[tid_f][ip]
-      lwnett+= (1.-fvegtmp[tid_f][ip])*irbtmp[tid_f][ip] + irct
-#     lwnett = lwdnt - lwupt
-      lwnet  = np.append(lwnet,-lwnett)
-      shf    = np.append(shf,shftmp[tid_f][ip])
-      lhf    = np.append(lhf,lhftmp[tid_f][ip])
-      ghf    = np.append(ghf,ghft)
-      pah    = np.append(pah,pahtmp[tid_f][ip])
-      resid3t= swnett-lwnett-shftmp[tid_f][ip]-lhftmp[tid_f][ip]-ghft
-      resid3t= resid3t - canhstmp[tid_f][ip]+ pahtmp[tid_f][ip]
-      resid3 = np.append(resid3,resid3t)
+        swupt  = albtmp[tid_f][ip]*swdntmp[tid_f][ip]
+        swnett = swdntmp[tid_f][ip] - swupt
+        swnet  = np.append(swnet,swnett)
+        lwdnt  = lwdntmp[tid_f][ip]*emistmp[tid_f][ip]
+        lwupt  = 5.67e-8 * emistmp[tid_f][ip] * lwuptmp[tid_f][ip]**4
+        ghft   = -ghftmp[tid_f][ip]
+        lwnett = fvegtmp[tid_f][ip]*irgtmp[tid_f][ip]
+        lwnett+= (1.-fvegtmp[tid_f][ip])*irbtmp[tid_f][ip] + irct
+#       lwnett = lwdnt - lwupt
+        lwnet  = np.append(lwnet,-lwnett)
+        shf    = np.append(shf,shftmp[tid_f][ip])
+        lhf    = np.append(lhf,lhftmp[tid_f][ip])
+        ghf    = np.append(ghf,ghft)
+        pah    = np.append(pah,pahtmp[tid_f][ip])
+        resid3t= swnett-lwnett-shftmp[tid_f][ip]-lhftmp[tid_f][ip]-ghft
+        resid3t= resid3t - canhstmp[tid_f][ip]+ pahtmp[tid_f][ip]
+        resid3 = np.append(resid3,resid3t)
 
-      swdn   = np.append(swdn,swdntmp[tid_f][ip])
-      swup   = np.append(swup,swupt)
-      lwdn   = np.append(lwdn,lwdnt)
-      lwup   = np.append(lwup,lwupt)
-      tid += 1
+        swdn   = np.append(swdn,swdntmp[tid_f][ip])
+        swup   = np.append(swup,swupt)
+        lwdn   = np.append(lwdn,lwdnt)
+        lwup   = np.append(lwup,lwupt)
+        tid += 1
     datanc.close() 
 
+# print("Plot panels")
+  matplotlib.use("TkAgg")
   fig = plt.figure(figsize=(width,height))
   panel = 0
   for row in range(rows):
     for col in range(cols):
       panel += 1
+#     print("Panel: ", panel)
       ax = fig.add_subplot(rows,cols,panel)
       line = np.array([None, None, None, None, None, None, None, None])
       if panel == 1:
@@ -305,7 +325,7 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
         line[6] = ax.plot(timeX, ghf,   label='GHF')
       else:
         ax.axis('off')
-        print("Note: the panel " + str(panel) + " is empty")
+#       print("Note: the panel " + str(panel) + " is empty")
       lines = None
       for m in range(len(line)):
         if m == 0:
@@ -313,10 +333,10 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
         else:
           if not None == line[m]:
             lines += line[m]
-      if days > 1:
+      if days > 12:
         ax.xaxis.set_major_locator(mdates.DayLocator(interval=max(int(days/6),1)))
       else:
-        ax.xaxis.set_major_locator(mdates.HourLocator(interval=72))
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=4))
       ax.xaxis.set_major_formatter(myFmt)
       if not lines == None:
         labs = [l.get_label() for l in lines]
@@ -327,11 +347,13 @@ def gen_figure(ifname, sfname, ofname, title, lpt, dveg):
       y_low, y_high = ax.get_ylim()
 #set aspect ratio
       ax.set_aspect(abs((x_right-x_left)/(y_low-y_high))*ratio)
+# print("Plot layouts")
   plt.subplots_adjust(wspace=.24)
   plt.subplots_adjust(hspace=.16)
   plt.subplots_adjust(top = 0.95)
   plt.subplots_adjust(bottom = 0.05)
 
+# print("Plot title and output")
   fig.tight_layout(rect=[0, 0.03, 1, 0.95])
   if title.upper() == 'AUTO':
     plt.suptitle('Energy Balances', y=0.97, fontsize=14)
@@ -367,11 +389,12 @@ def last_14chars(x):
     return(x[-14:])
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument('-i',   '--input',   help="input files", required=True)
-    ap.add_argument('-s',   '--static',  help="static input file", default="")
-    ap.add_argument('-o',   '--output',  help="output file: none, auto, or name", default="none")
-    ap.add_argument('-t',   '--title',   help="figure main title", default="auto")
-    ap.add_argument('-v',   '--dveg',    help="dynamic vegetation option", required=True)
-    ap.add_argument('-p',   '--point',   help="land point index", required=True)
+    ap.add_argument('-i',   '--input',  help="input files",                      required=True)
+    ap.add_argument('-v',   '--dveg',   help="dynamic vegetation option",        required=True)
+    ap.add_argument('-s',   '--static', help="static input file",                default="")
+    ap.add_argument('-o',   '--output', help="output file: none, auto, or name", default="none")
+    ap.add_argument('-n',   '--title',  help="figure main title",                default="auto")
+    ap.add_argument('-p',   '--point',  help="land point index",                 default='1')
+    ap.add_argument('-t',   '--trange', help="time range for plotting",          default="")
     MyArgs = ap.parse_args()
-    gen_figure(MyArgs.input, MyArgs.static, MyArgs.output, MyArgs.title, MyArgs.point, MyArgs.dveg)
+    gen_figure(MyArgs.input, MyArgs.static, MyArgs.output, MyArgs.title, MyArgs.point, MyArgs.dveg, MyArgs.trange)
