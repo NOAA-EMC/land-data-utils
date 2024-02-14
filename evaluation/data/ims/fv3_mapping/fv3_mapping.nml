@@ -1,0 +1,13 @@
+&fv3_mapping_nml
+ tile_dim=96
+ otype="C96.mx100_oro_data"
+ orog_path="/scratch1/NCEPDEV/global/glopara/fix/orog/20231027/C96"
+ tile_path="/scratch1/NCEPDEV/global/glopara/fix/orog/20231027/C96"
+ obs_source="IMS1km"
+ source_i_size=24576
+ source_j_size=24576
+ ims_path="/scratch2/NCEPDEV/land/data/evaluation/IMS/fix_coords/"
+ ims_lat_name="imslat_1km_8bytes.bin"
+ ims_lon_name="imslon_1km_8bytes.bin"
+ out_path="/scratch2/NCEPDEV/land/data/evaluation/IMS/fix_20231027/index_files/"
+/
