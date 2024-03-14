@@ -1,0 +1,8 @@
+&regrid_cmc_nml
+ destination_locs=2381853
+ weight_locs=2381853
+ fv3_grid="C1152"
+ source_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/ascii/"
+ weights_filename="/scratch2/NCEPDEV/land/data/evaluation/CMC/fix_20231027/weights/CMC_polar_stereo-C1152_nearest_wts.nc"
+ destination_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/C1152/"
+/

@@ -1,0 +1,8 @@
+&regrid_cmc_nml
+ destination_locs=1410
+ weight_locs=1410
+ fv3_grid="C96_conus"
+ source_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/ascii/"
+ weights_filename="/scratch2/NCEPDEV/land/data/evaluation/CMC/fix_20231027/weights/CMC_polar_stereo-C96_conus_nearest_wts.nc"
+ destination_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/C96_conus/"
+/
