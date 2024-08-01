@@ -1,0 +1,11 @@
+&fv3_mapping_nml
+ tile_dim=96
+ otype="C96.mx100_oro_data"
+ orog_path="/scratch1/NCEPDEV/global/glopara/fix/orog/20231027/C96"
+ tile_path="/scratch1/NCEPDEV/global/glopara/fix/orog/20231027/C96"
+ obs_source="MODIS0.05"
+ source_i_size=7200
+ source_j_size=3600
+ modis_filename="/scratch2/NCEPDEV/land/data/evaluation/MODIS/albedo/orig/MCD43C3.A2021360.061.nc"
+ out_path="/scratch2/NCEPDEV/land/data/evaluation/MODIS/fix_20231027/index_files"
+/
