@@ -1,0 +1,8 @@
+&modis_regrid_nml
+ fv3_grid="prototype"
+ land_vegsoil_filename="/scratch2/NCEPDEV/land/data/evaluation/domains/prototype/prototype8_vegsoil.nc"
+  modis_mapping_filename="/scratch2/NCEPDEV/land/data/evaluation/MODIS/fix_20231027/gaussianGrid_mapping/modis_prototype_mapping.nc"
+ modis_land_filename="/scratch2/NCEPDEV/land/data/evaluation/MODIS/landcover/MCD12C1.A2021001.061.nc"
+ modis_filepath="/scratch2/NCEPDEV/land/data/evaluation/MODIS/albedo/orig"
+ regrid_outpath="/scratch2/NCEPDEV/land/data/evaluation/MODIS/albedo"
+/
