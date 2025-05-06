@@ -1,0 +1,4 @@
+&land_mapping_nml
+ims_regrid_filename="/scratch2/NCEPDEV/land/data/evaluation/SNODAS/fix_20231027/mapping/snodas_fv3_mapping_C96.nc"
+land_static_filename="/scratch2/NCEPDEV/land/data/forcing/era5/static/C96_conus/ufs-land_C96_conus_hr3_static_fields.nc"
+output_filename="/scratch2/NCEPDEV/land/data/evaluation/SNODAS/fix_20231027/land_mapping/snodas1km_to_land_mapping.C96_conus.nc"
