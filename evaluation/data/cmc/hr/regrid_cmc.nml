@@ -1,0 +1,10 @@
+&regrid_cmc_nml
+ destination_locs=4718592
+ weight_locs=1649485
+ destination_lons=3072
+ destination_lats=1536
+ fv3_grid="hr"
+ source_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/ascii/"
+ weights_filename="/scratch2/NCEPDEV/land/data/evaluation/CMC/fix_20231027/weights/CMC_polar_stereo-hr_nearest_wts.nc"
+ destination_path="/scratch2/NCEPDEV/land/data/evaluation/CMC/hr/"
+/
