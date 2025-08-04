@@ -3,8 +3,8 @@
 export scripts=/scratch2/NCEPDEV/land/data/evaluation/ush
 export EXEC_DIR=../sorc
 
-sdate=20131001
-edate=20211231
+sdate=20240101
+edate=20241231
 
 #sdate=20150101
 #edate=20150101

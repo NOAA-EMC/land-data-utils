@@ -3,6 +3,6 @@
  fv3_grid="C384"
  land_static_filename="/scratch2/NCEPDEV/land/data/forcing/era5/static/C384/ufs-land_C384_hr3_static_fields.nc"
  snodas_regrid_filename="/scratch2/NCEPDEV/land/data/evaluation/SNODAS/fix_20231027/land_mapping/snodas1km_to_land_mapping.C384.nc"
- snodas_filepath="/scratch2/NCEPDEV/land/data/evaluation/SNODAS/orig/"
- regrid_outpath="/scratch2/NCEPDEV/land/data/evaluation/SNODAS/"
+ snodas_filepath="/scratch3/NCEPDEV/land/Youlong.Xia/SNODAS/orig/"
+ regrid_outpath="/scratch3/NCEPDEV/land/Youlong.Xia/SNODAS/"
 /
