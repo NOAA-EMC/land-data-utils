@@ -1,0 +1,5 @@
+0 ncl regrid_to_vector_monthly.ncl yyyy_beg=1980 yyyy_end=1989 mm_beg=1 mm_end=12
+1 ncl regrid_to_vector_monthly.ncl yyyy_beg=1990 yyyy_end=1999 mm_beg=1 mm_end=12
+2 ncl regrid_to_vector_monthly.ncl yyyy_beg=2000 yyyy_end=2009 mm_beg=1 mm_end=12
+3 ncl regrid_to_vector_monthly.ncl yyyy_beg=2010 yyyy_end=2019 mm_beg=1 mm_end=12
+4 ncl regrid_to_vector_monthly.ncl yyyy_beg=2020 yyyy_end=2025 mm_beg=1 mm_end=12

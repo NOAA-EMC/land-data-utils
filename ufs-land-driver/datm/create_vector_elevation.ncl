@@ -43,6 +43,10 @@ begin
 
     data = 1.0*infile->orog(0,::-1,:)     ; reverse latitude to conform with weights file
 
+  elseif(datm_source .eq. "CORe") then
+
+    data = 1.0*infile->HGT_surface(0,:,:)
+
   else
 
     print("Unknown datm_source: "+datm_source)

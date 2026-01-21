@@ -30,7 +30,6 @@ ocn_res="mx100"
 grid_version="hr3"
 datm_source="ERA5"
 datm_source_file="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/1980/ERA5_forcing_1980-01-01.nc"
-interpolation_method="bilinear"
 destination_scrip_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
 grid_extent="global"
 
@@ -60,7 +59,6 @@ fi
 
 grid=$res"_hr3"
 output_path=$res"/"
-weights_filename=$datm_source"-"$grid"_"$interpolation_method"_wts.nc"
 destination_scrip_file=$destination_scrip_path"/"$res"/ufs-land_"$grid"_SCRIP.nc"
 
 if [ -d $output_path ]; then 
@@ -69,8 +67,21 @@ else
   mkdir -p $output_path
 fi
 
-# create weights file
+# create weights file for bilinear interpolation
 
+interpolation_method="bilinear"
+weights_filename=$datm_source"-"$grid"_"$interpolation_method"_wts.nc"
+echo "Creating weights file: "$weights_filename
+
+srun -n $SLURM_NTASKS time ESMF_RegridWeightGen --netcdf4 --ignore_degenerate \
+       --source $datm_scrip_file \
+       --destination $destination_scrip_file \
+       --weight $output_path$weights_filename --method $interpolation_method
+
+# create weights file for neareststod interpolation
+
+interpolation_method="neareststod"
+weights_filename=$datm_source"-"$grid"_"$interpolation_method"_wts.nc"
 echo "Creating weights file: "$weights_filename
 
 srun -n $SLURM_NTASKS time ESMF_RegridWeightGen --netcdf4 --ignore_degenerate \

@@ -8,6 +8,7 @@ yyyy             = keyword_values("parameter_assignment","yyyy","integer")
   timestep       = keyword_values("parameter_assignment","timestep","integer")
 ic_preamble      = keyword_values("parameter_assignment","ic_preamble","string")
 datm_source_path = keyword_values("parameter_assignment","datm_source_path","string")
+datm_source      = keyword_values("parameter_assignment","datm_source","string")
 static_filename  = keyword_values("parameter_assignment","static_filename","string")
 
 ; access the static file for lat/lon later
@@ -16,7 +17,15 @@ static_file = addfile(static_filename,"r")
 
 ; get temperature from forcing as estimate for soil temperature
 
-temperature_filename = datm_source_path+"_datm_"+yyyy+"-"+tostring_with_format(mm,"%2.2d")+"-"+tostring_with_format(dd,"%2.2d")+".nc"
+if(datm_source .eq. "ERA5") then
+  temperature_filename = datm_source_path+"_datm_"+yyyy+"-"+tostring_with_format(mm,"%2.2d")+"-"+tostring_with_format(dd,"%2.2d")+".nc"
+elseif(datm_source .eq. "CORe") then
+  temperature_filename = datm_source_path+"_datm_"+yyyy+"-"+tostring_with_format(mm,"%2.2d")+".nc"
+else
+  print("Unknown datm: "+datm_source)
+  exit
+end if
+
 temperature_file = addfile(temperature_filename,"r")
 temperature_in = temperature_file->temperature(0,:)
 

@@ -81,6 +81,7 @@ echo "dd = $dd" >> parameter_assignment
 echo "hh = $hh" >> parameter_assignment
 echo "timestep = $timestep" >> parameter_assignment
 echo "ic_preamble = "$output_path$datm_source"-"$grid >> parameter_assignment
+echo "datm_source = "$datm_source >> parameter_assignment
 echo "datm_source_path = "$datm_source_path$output_path$datm_source"-"$grid >> parameter_assignment
 echo "static_filename = "$static_filename >> parameter_assignment
 

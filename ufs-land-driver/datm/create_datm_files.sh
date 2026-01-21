@@ -17,7 +17,7 @@
 #
 # -- Specify a maximum wallclock
 # -- C96  : ~30 minutes  C96 conus : ~25 minutes
-# -- C192 : ~30 minutes
+# -- C192 : ~30 minutes  ; for CORe monthly "sbatch --mem=15g " 3g/task
 # -- C384 : ~1 hours
 # -- C768 : ~1.5 hours
 # -- C1152: ~3 hours; need to run "sbatch --mem=32g "
@@ -36,14 +36,16 @@ datm_source_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original
 elevation_source_filename="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/elevation/e5.oper.invariant.128_129_z.ll025sc.1979010100_1979010100.nc"
 static_file_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
 weights_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/weights/"
-interpolation_method="bilinear"
+interpolation_method1="bilinear"
+interpolation_method2="neareststod"
+precip_interpolation_method="all"
 regrid_tasks_file="regrid-tasks.ERA5"
 
 #################################################################################
 #  shouldn't need to modify anything below
 #################################################################################
 
-# create weights filename and check if it exists
+# check if elevation file exists
 
 if [ -e $elevation_source_filename ]; then 
   echo "using elevation_source_filename:"$elevation_source_filename
@@ -70,15 +72,26 @@ else
   mkdir -p $output_path
 fi
 
-# create weights filename and check if it exists
+# create weights filename for method 1 and check if it exists
 
-weights_filename=$weights_path$output_path$datm_source"-"$grid"_"$interpolation_method"_wts.nc"
+weights_method1_filename=$weights_path$output_path$datm_source"-"$grid"_"$interpolation_method1"_wts.nc"
 
-if [ -e $weights_filename ]; then 
-  echo "using weights_filename:"$weights_filename
+if [ -e $weights_method1_filename ]; then 
+  echo "using weights_method1_filename:"$weights_method1_filename
 else
-  echo "ERROR: weights_filename does not exist: "$weights_filename
+  echo "ERROR: weights_method1_filename does not exist: "$weights_method1_filename
   exit 2
+fi
+
+# create weights filename for method 2 and check if it exists
+
+weights_method2_filename=$weights_path$output_path$datm_source"-"$grid"_"$interpolation_method2"_wts.nc"
+
+if [ -e $weights_method2_filename ]; then 
+  echo "using weights_method2_filename:"$weights_method2_filename
+else
+  echo "ERROR: weights_method2_filename does not exist: "$weights_method2_filename
+  exit 22
 fi
 
 # create static filename and check if it exists
@@ -92,6 +105,15 @@ else
   exit 3
 fi
 
+if [ $precip_interpolation_method = "all"     ] ||  
+   [ $precip_interpolation_method = "method1" ] ||
+   [ $precip_interpolation_method = "method2" ]; then 
+  echo "using precip_interpolation_method:"$precip_interpolation_method
+else
+  echo "ERROR: precip_interpolation_method not set correctly: "$precip_interpolation_method
+  exit 4
+fi
+
 # create elevation filename
 
 elevation_filename="elevation_"$datm_source"_"$grid".nc"
@@ -103,7 +125,7 @@ echo "creating elevation_filename:"$elevation_filename
 cmdparm="'static_filename="\"$static_filename"\"' "
 cmdparm=$cmdparm"'elevation_source_filename="\"$elevation_source_filename"\"' "
 cmdparm=$cmdparm"'datm_source="\"$datm_source"\"' "
-cmdparm=$cmdparm"'weights_filename="\"$weights_filename"\"' "
+cmdparm=$cmdparm"'weights_filename="\"$weights_method1_filename"\"' "
 cmdparm=$cmdparm"'elevation_filename="\"$elevation_filename"\"' "
 
 echo "variable list sent to elevation creating NCL script"
@@ -116,7 +138,11 @@ eval "/usr/bin/time ncl create_vector_elevation.ncl $cmdparm"
 echo "Creating datm files"
 
 echo "elevation_filename = $elevation_filename" > regrid_parameter_assignment
-echo "weights_filename = $weights_filename" >> regrid_parameter_assignment
+echo "weights_method1_filename = $weights_method1_filename" >> regrid_parameter_assignment
+echo "weights_method2_filename = $weights_method2_filename" >> regrid_parameter_assignment
+echo "precip_interpolation_method = $precip_interpolation_method" >> regrid_parameter_assignment
+echo "interpolation_method1 = $interpolation_method1" >> regrid_parameter_assignment
+echo "interpolation_method2 = $interpolation_method2" >> regrid_parameter_assignment
 echo "datm_source_path = $datm_source_path" >> regrid_parameter_assignment
 echo "output_preamble = "$output_path$datm_source"-"$grid >> regrid_parameter_assignment
 
