@@ -1,7 +1,13 @@
 ; this script produces SCRIP files used for ESMF regridding: full grid, and separate for bare/snow/veg
 
-
 begin
+
+atm_res      = keyword_values("regrid_parameter_assignment",     "atm_res","string")
+ocn_res      = keyword_values("regrid_parameter_assignment",     "ocn_res","string")
+grid_version = keyword_values("regrid_parameter_assignment","grid_version","string")
+output_path  = keyword_values("regrid_parameter_assignment", "output_path","string")
+fixfile_path = keyword_values("regrid_parameter_assignment","fixfile_path","string")
+grid_extent  = keyword_values("regrid_parameter_assignment", "grid_extent","string")
 
 if(grid_extent.eq."global") then
     corners_filename      = output_path+"ufs-land_"+atm_res+"."+ocn_res+"_"+grid_version+"_corners.nc"
@@ -17,6 +23,13 @@ elseif(grid_extent.eq."conus") then
   pts_scrip_filename_snow = output_path+"ufs-land_"+atm_res+"."+ocn_res+"."+grid_extent+"_"+grid_version+"_SCRIP_snow.nc"
   pts_scrip_filename_veg  = output_path+"ufs-land_"+atm_res+"."+ocn_res+"."+grid_extent+"_"+grid_version+"_SCRIP_veg.nc"
      static_filename      = output_path+"ufs-land_"+atm_res+"."+ocn_res+"."+grid_extent+"_"+grid_version+"_static_fields.nc"
+elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+    corners_filename      = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_corners.nc"
+  pts_scrip_filename      = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_SCRIP.nc"
+  pts_scrip_filename_bare = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_SCRIP_bare.nc"
+  pts_scrip_filename_snow = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_SCRIP_snow.nc"
+  pts_scrip_filename_veg  = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_SCRIP_veg.nc"
+     static_filename      = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_static_fields.nc"
 else
   print("problem with grid_extent in create_scrip")
   exit

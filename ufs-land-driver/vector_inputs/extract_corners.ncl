@@ -1,12 +1,21 @@
 
 begin
 
+atm_res      = keyword_values("regrid_parameter_assignment",     "atm_res","string")
+ocn_res      = keyword_values("regrid_parameter_assignment",     "ocn_res","string")
+grid_version = keyword_values("regrid_parameter_assignment","grid_version","string")
+output_path  = keyword_values("regrid_parameter_assignment", "output_path","string")
+fixfile_path = keyword_values("regrid_parameter_assignment","fixfile_path","string")
+grid_extent  = keyword_values("regrid_parameter_assignment", "grid_extent","string")
+
 ; create filename and overwrite if present
 
 if(grid_extent.eq."global") then
   outname = output_path+"ufs-land_"+atm_res+"."+ocn_res+"_"+grid_version+"_corners.nc"
 elseif(grid_extent.eq."conus") then
   outname = output_path+"ufs-land_"+atm_res+"."+ocn_res+"."+grid_extent+"_"+grid_version+"_corners.nc"
+elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+  outname = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_corners.nc"
 else
   print("problem with grid_extent in extract_corners")
   exit
@@ -16,10 +25,22 @@ newfile = addfile(outname,"c")
 
 ; set the maximum dimension
 
-maskfile = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile1.nc","r")
+if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+  maskfile = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile1.nc","r")
+elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+  maskfile = addfile(fixfile_path+atm_res+"_oro_data.tile7.halo0.nc","r")
+end if
+
 maskdims = getfiledimsizes(maskfile)
 
-maxdim = maskdims(0)*maskdims(1)*6
+maxdim = maskdims(0)*maskdims(1)
+if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+  numtiles = 6
+  maxdim = maxdim * 6
+elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+  numtiles = 1
+end if
+
 latitude           = new(maxdim,double)
 latitude!0         = "location"
 longitude          = latitude
@@ -30,18 +51,23 @@ longitude_corners  = latitude_corners
 
 nloc = -1
 
-do itile = 1,6
+do itile = 1, numtiles
 
 print("Starting tile: "+itile)
 
- maskfile = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile"+itile+".nc","r")
- cornfile = addfile(fixfile_path+atm_res+"/"+atm_res+"_grid.tile"+itile+".nc","r")
+ if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+   orography_file = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile"+itile+".nc","r")
+   grid_file = addfile(fixfile_path+atm_res+"/"+atm_res+"_grid.tile"+itile+".nc","r")
+ elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+   orography_file = addfile(fixfile_path+"/"+atm_res+"_oro_data.tile7.halo0.nc","r")
+   grid_file = addfile(fixfile_path+atm_res+"_grid.tile7.halo0.nc","r")
+ end if
 
- inmask = maskfile->land_frac 
- inlat  = maskfile->geolat
- inlon  = maskfile->geolon
- inx    = cornfile->x
- iny    = cornfile->y
+ inmask = orography_file->land_frac 
+ inlat  = orography_file->geolat
+ inlon  = orography_file->geolon
+ inx    = grid_file->x
+ iny    = grid_file->y
 
  ndims = dimsizes(inmask)
  
