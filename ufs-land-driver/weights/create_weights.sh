@@ -13,7 +13,8 @@
 #SBATCH --account=fv3-cpu
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
-#SBATCH --job-name=regrid_weights
+#SBATCH --job-name=ufs-land-create_weights
+#SBATCH -o ufs-land-create_weights.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -25,13 +26,13 @@ module load stack-intel-oneapi-mpi/2021.13
 module load esmf/8.8.0
 module load ncl/6.6.2
 
-atm_res="C96"
+atm_res="C918"
 ocn_res="mx100"
-grid_version="hr3"
+grid_version="ARC"
 datm_source="ERA5"
 datm_source_file="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/1980/ERA5_forcing_1980-01-01.nc"
 destination_scrip_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
-grid_extent="global"
+grid_extent="ARC"
 
 #################################################################################
 #  shouldn't need to modify anything below
@@ -41,25 +42,38 @@ grid_extent="global"
 
 datm_scrip_file=$datm_source"_SCRIP.nc"
 
-cmdparm="'datm_scrip_file="\"$datm_scrip_file"\"' "
-cmdparm=$cmdparm"'datm_source_file="\"$datm_source_file"\"' "
+# create the strings for the ncl parameter file
 
-echo "variable list sent to NCL"
-echo $cmdparm
+echo "datm_scrip_file = $datm_scrip_file" > regrid_parameter_assignment
+echo "datm_source_file = $datm_source_file" >> regrid_parameter_assignment
 
-eval "time ncl create_datm_scrip.ncl $cmdparm"
+eval "time ncl create_datm_scrip.ncl"
 
-# the default location for output files is $atm_res.$ocn_res
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [ $grid_version = "hr3" ]; then 
+  grid=$atm_res.$ocn_res"_hr3"
+elif [ $grid_version = "AQM" ]; then 
+  grid=$atm_res.$grid_version
+elif [ $grid_version = "ARC" ]; then 
+  grid=$atm_res.$grid_version
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown grid_version $grid_version"
+  exit 1
 fi
 
-grid=$res"_hr3"
-output_path=$res"/"
-destination_scrip_file=$destination_scrip_path"/"$res"/ufs-land_"$grid"_SCRIP.nc"
+if [ $grid_extent = "global" ]; then 
+  output_path=$atm_res.$ocn_res"/"
+elif [ $grid_extent = "AQM" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "ARC" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "conus" ]; then 
+  output_path=$atm_res.$ocn_res.$grid_extent"/"
+else
+  echo "ERROR: unknown grid_extent $grid_extent"
+  exit 2
+fi
+
+destination_scrip_file=$destination_scrip_path"/"$output_path"/ufs-land_"$grid"_SCRIP.nc"
 
 if [ -d $output_path ]; then 
   echo "BEWARE: output_path directory exists and overwriting is allowed"
