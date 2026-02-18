@@ -13,7 +13,8 @@
 #SBATCH --account=fv3-cpu
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
-#SBATCH --job-name=create_cold_start
+#SBATCH --job-name=ufs-land-create_cold_start
+#SBATCH -o ufs-land-create_cold_start.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -38,20 +39,29 @@ timestep=60
 #  shouldn't need to modify anything below
 #################################################################################
 
-# the default location for output files is $atm_res.$ocn_res
-# create a variable $res, e.g., C96.mx100 or C96.mx100.conus
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [ $grid_version = "hr3" ]; then 
+  grid=$atm_res.$ocn_res"_hr3"
+elif [ $grid_version = "AQM" ]; then 
+  grid=$atm_res.$grid_version
+elif [ $grid_version = "ARC" ]; then 
+  grid=$atm_res.$grid_version
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown grid_version $grid_version"
+  exit 2
 fi
 
-# create a variable $grid, e.g., C96.mx100_hr3 or C96.mx100.conus_hr3
-# create a variable $output_path, e.g., C96.mx100/ or C96.mx100.conus/
-
-grid=$res"_"$grid_version
-output_path=$res"/"
+if [ $grid_extent = "global" ]; then 
+  output_path=$atm_res.$ocn_res"/"
+elif [ $grid_extent = "AQM" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "ARC" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "conus" ]; then 
+  output_path=$atm_res.$ocn_res.$grid_extent"/"
+else
+  echo "ERROR: unknown grid_extent $grid_extent"
+  exit 3
+fi
 
 if [ -d $output_path ]; then 
   echo "BEWARE: output_path directory exists and overwriting is allowed"
