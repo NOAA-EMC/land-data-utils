@@ -2,10 +2,14 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 begin
 
-elevation_filename = keyword_values("regrid_parameter_assignment","elevation_filename","string")
-  weights_filename = keyword_values("regrid_parameter_assignment",  "weights_filename","string")
-  datm_source_path = keyword_values("regrid_parameter_assignment",  "datm_source_path","string")
-   output_preamble = keyword_values("regrid_parameter_assignment",   "output_preamble","string")
+         elevation_filename = keyword_values("regrid_parameter_assignment",         "elevation_filename","string")
+precip_interpolation_method = keyword_values("regrid_parameter_assignment","precip_interpolation_method","string")
+      interpolation_method1 = keyword_values("regrid_parameter_assignment",      "interpolation_method1","string")
+      interpolation_method2 = keyword_values("regrid_parameter_assignment",      "interpolation_method2","string")
+   weights_method1_filename = keyword_values("regrid_parameter_assignment",   "weights_method1_filename","string")
+   weights_method2_filename = keyword_values("regrid_parameter_assignment",   "weights_method2_filename","string")
+           datm_source_path = keyword_values("regrid_parameter_assignment",           "datm_source_path","string")
+            output_preamble = keyword_values("regrid_parameter_assignment",            "output_preamble","string")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; some regrid options that are not used in production
@@ -32,7 +36,7 @@ end if
 ; get the vector size from the weights file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-infile = addfile(weights_filename,"r")
+infile = addfile(weights_method1_filename,"r")
 numlocs = dimsizes(infile->frac_b)
 
 do iyyyy = yyyy_beg, yyyy_end
@@ -62,7 +66,7 @@ do idd = 1, numdays
     solar_radiation!0 = "time"
     solar_radiation!1 = "location"
     solar_radiation&time = time
-    solar_radiation@interpolation_weights = weights_filename
+    solar_radiation@interpolation_weights = weights_method1_filename
   longwave_radiation = solar_radiation
   temperature = solar_radiation
     temperature@units = "K"
@@ -72,14 +76,24 @@ do idd = 1, numdays
     speed@units = "m/s"
   surface_pressure = solar_radiation
     surface_pressure@units = "Pa"  
-  precipitation = solar_radiation
-    precipitation@units = "mm/s"
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
+    precipitation_method1_varname = "precipitation_"+interpolation_method1
+    precipitation_method1 = solar_radiation
+    precipitation_method1@units = "mm/s"
+    precipitation_method1@interpolation_weights = weights_method1_filename
+  end if
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method2") then
+    precipitation_method2_varname = "precipitation_"+interpolation_method2
+    precipitation_method2 = solar_radiation
+    precipitation_method2@units = "mm/s"
+    precipitation_method2@interpolation_weights = weights_method2_filename
+  end if
   
 ;;;;;;;;;;;;;;;;;;;;
 
   data = infile->downward_solar
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
   solar_radiation = (/ var_regrid /)
   
@@ -87,7 +101,7 @@ do idd = 1, numdays
 
   data = infile->downward_longwave
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
   longwave_radiation = (/ var_regrid /)
 
@@ -95,7 +109,7 @@ do idd = 1, numdays
 
   data = infile->temperature
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
 
   if(do_elevation_adjustment) then
     do itime = 0, 23
@@ -109,7 +123,7 @@ do idd = 1, numdays
 
   data = infile->specific_humidity
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
   specific_humidity = (/ var_regrid /)
 
@@ -117,7 +131,7 @@ do idd = 1, numdays
 
   data = infile->wind_speed
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
   speed = (/ var_regrid /)
 
@@ -125,7 +139,7 @@ do idd = 1, numdays
 
   data = infile->surface_pressure
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
   surface_pressure = (/ var_regrid /)
 
@@ -133,9 +147,21 @@ do idd = 1, numdays
 
   data = infile->precipitation
 
-  var_regrid = ESMF_regrid_with_weights(data,weights_filename,Opt)
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
+
+    var_regrid = ESMF_regrid_with_weights(data,weights_method1_filename,Opt)
   
-  precipitation = (/ var_regrid /)
+    precipitation_method1 = (/ var_regrid /)
+
+  end if
+  
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method2") then
+
+    var_regrid = ESMF_regrid_with_weights(data,weights_method2_filename,Opt)
+  
+    precipitation_method2 = (/ var_regrid /)
+
+  end if
   
 ;;;;;;;;;;;;;;;;;;;;
 
@@ -148,7 +174,19 @@ do idd = 1, numdays
   outfile->specific_humidity = specific_humidity
   outfile->wind_speed = speed
   outfile->surface_pressure = surface_pressure
-  outfile->precipitation = precipitation
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
+
+    outfile->$precipitation_method1_varname$ = precipitation_method1
+    delete(precipitation_method1)
+
+  end if
+  
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method2") then
+
+    outfile->$precipitation_method2_varname$ = precipitation_method2
+    delete(precipitation_method2)
+
+  end if
   
 ;  system("ncks -h -O -4 -L 1 "+outname+" "+outname)
   
@@ -161,7 +199,6 @@ do idd = 1, numdays
   delete(specific_humidity)
   delete(speed)
   delete(surface_pressure)
-  delete(precipitation)
 
 end do
 end do

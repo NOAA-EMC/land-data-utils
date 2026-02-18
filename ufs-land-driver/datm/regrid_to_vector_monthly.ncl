@@ -175,12 +175,14 @@ do imm = mm_beg, mm_end
   if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
 
     outfile->$precipitation_method1_varname$ = precipitation_method1
+    delete(precipitation_method1)
 
   end if
   
-  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method2") then
 
     outfile->$precipitation_method2_varname$ = precipitation_method2
+    delete(precipitation_method2)
 
   end if
   
@@ -195,8 +197,6 @@ do imm = mm_beg, mm_end
   delete(specific_humidity)
   delete(speed)
   delete(surface_pressure)
-  delete(precipitation_method1)
-  delete(precipitation_method2)
 
 end do
 end do

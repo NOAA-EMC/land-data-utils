@@ -7,7 +7,8 @@
 #SBATCH --account=fv3-cpu
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
-#SBATCH --job-name=create_datm_files
+#SBATCH --job-name=ufs-land-create_datm
+#SBATCH -o ufs-land-create_datm.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -21,6 +22,7 @@
 # -- C384 : ~1 hours
 # -- C768 : ~1.5 hours
 # -- C1152: ~3 hours; need to run "sbatch --mem=32g "
+# -- C981 ARC: ~30 minutes
 #
 #SBATCH --time=0:30:00
 
@@ -54,16 +56,29 @@ else
   exit 1
 fi
 
-# the default location for output files is $atm_res.$ocn_res
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [ $grid_version = "hr3" ]; then 
+  grid=$atm_res.$ocn_res"_hr3"
+elif [ $grid_version = "AQM" ]; then 
+  grid=$atm_res.$grid_version
+elif [ $grid_version = "ARC" ]; then 
+  grid=$atm_res.$grid_version
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown grid_version $grid_version"
+  exit 2
 fi
 
-grid=$res"_hr3"
-output_path=$res"/"
+if [ $grid_extent = "global" ]; then 
+  output_path=$atm_res.$ocn_res"/"
+elif [ $grid_extent = "AQM" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "ARC" ]; then 
+  output_path=$atm_res.$grid_extent"/"
+elif [ $grid_extent = "conus" ]; then 
+  output_path=$atm_res.$ocn_res.$grid_extent"/"
+else
+  echo "ERROR: unknown grid_extent $grid_extent"
+  exit 3
+fi
 
 if [ -d $output_path ]; then 
   echo "BEWARE: output_path directory exists and overwriting is allowed"
@@ -80,7 +95,7 @@ if [ -e $weights_method1_filename ]; then
   echo "using weights_method1_filename:"$weights_method1_filename
 else
   echo "ERROR: weights_method1_filename does not exist: "$weights_method1_filename
-  exit 2
+  exit 4
 fi
 
 # create weights filename for method 2 and check if it exists
@@ -91,7 +106,7 @@ if [ -e $weights_method2_filename ]; then
   echo "using weights_method2_filename:"$weights_method2_filename
 else
   echo "ERROR: weights_method2_filename does not exist: "$weights_method2_filename
-  exit 22
+  exit 5
 fi
 
 # create static filename and check if it exists
@@ -102,7 +117,7 @@ if [ -e $static_filename ]; then
   echo "using static_filename:"$static_filename
 else
   echo "ERROR: static_filename does not exist: "$static_filename
-  exit 3
+  exit 6
 fi
 
 if [ $precip_interpolation_method = "all"     ] ||  
@@ -111,7 +126,7 @@ if [ $precip_interpolation_method = "all"     ] ||
   echo "using precip_interpolation_method:"$precip_interpolation_method
 else
   echo "ERROR: precip_interpolation_method not set correctly: "$precip_interpolation_method
-  exit 4
+  exit 7
 fi
 
 # create elevation filename
@@ -122,16 +137,13 @@ echo "creating elevation_filename:"$elevation_filename
 
 # create elevation difference file
 
-cmdparm="'static_filename="\"$static_filename"\"' "
-cmdparm=$cmdparm"'elevation_source_filename="\"$elevation_source_filename"\"' "
-cmdparm=$cmdparm"'datm_source="\"$datm_source"\"' "
-cmdparm=$cmdparm"'weights_filename="\"$weights_method1_filename"\"' "
-cmdparm=$cmdparm"'elevation_filename="\"$elevation_filename"\"' "
+echo "static_filename = $static_filename" > regrid_parameter_assignment
+echo "elevation_source_filename = $elevation_source_filename" >> regrid_parameter_assignment
+echo "datm_source = $datm_source" >> regrid_parameter_assignment
+echo "weights_filename = $weights_method1_filename" >> regrid_parameter_assignment
+echo "elevation_filename = $elevation_filename" >> regrid_parameter_assignment
 
-echo "variable list sent to elevation creating NCL script"
-echo $cmdparm
-
-eval "/usr/bin/time ncl create_vector_elevation.ncl $cmdparm"
+eval "/usr/bin/time ncl create_vector_elevation.ncl"
 
 # regrid the source data atmosphere
 
