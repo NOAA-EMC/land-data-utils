@@ -23,7 +23,7 @@
 # -- C768 : ~6 minutes
 # -- C1152: ~15 minutes
 #
-#SBATCH --time=0:01:00
+#SBATCH --time=0:15:00
 
 module purge
 module load ncl/6.6.2

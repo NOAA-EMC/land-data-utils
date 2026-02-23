@@ -405,4 +405,17 @@ newfile@isice = 15
 newfile@isurban = 13
 newfile@iswater = 17
 
+newfile@atm_res       = atm_res
+newfile@ocn_res       = ocn_res
+newfile@grid_string   = grid_string
+newfile@fixfile_path  = fixfile_path
+newfile@grid_extent   = grid_extent
+newfile@is_global     = is_global
+if(grid_extent.eq."subset") then
+  newfile@subset_maxlat = subset_maxlat
+  newfile@subset_minlat = subset_minlat
+  newfile@subset_maxlon = subset_maxlon
+  newfile@subset_minlon = subset_minlon
+end if
+
 end
