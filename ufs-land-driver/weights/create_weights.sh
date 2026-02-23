@@ -26,7 +26,7 @@ module load stack-intel-oneapi-mpi/2021.13
 module load esmf/8.8.0
 module load ncl/6.6.2
 
-# set parameters for grid generation
+# set parameters for weights generation
 #
 # atm_res      : fv3 grid resolution
 # ocn_res      : ocean resolution, not used for AQM or ARC regional grids
@@ -37,11 +37,14 @@ module load ncl/6.6.2
 # grid_extent  : total - use all grids (e.g., global or entire regional)
 #                subset - regional cutout, limits below
 # subset_name  : if subset, name for subset, e.g., conus
+# datm_source  : ERA5 or CORe or GDAS or CDAS
+# datm_source_file       : a datm source file to extract info for SCRIP file
+# destination_scrip_path : location of the destination SCRIP file
 
 atm_res="C96"
 ocn_res="mx100"
 grid_version="20231027"
-grid_extent="subset"
+grid_extent="total"
 subset_name="conus"
 datm_source="ERA5"
 datm_source_file="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/1980/ERA5_forcing_1980-01-01.nc"
