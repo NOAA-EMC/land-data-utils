@@ -1,43 +1,39 @@
 
 begin
 
-atm_res      = keyword_values("regrid_parameter_assignment",     "atm_res","string")
-ocn_res      = keyword_values("regrid_parameter_assignment",     "ocn_res","string")
-grid_version = keyword_values("regrid_parameter_assignment","grid_version","string")
-output_path  = keyword_values("regrid_parameter_assignment", "output_path","string")
-fixfile_path = keyword_values("regrid_parameter_assignment","fixfile_path","string")
-grid_extent  = keyword_values("regrid_parameter_assignment", "grid_extent","string")
+atm_res       = keyword_values("regrid_parameter_assignment",      "atm_res","string")
+ocn_res       = keyword_values("regrid_parameter_assignment",      "ocn_res","string")
+grid_string   = keyword_values("regrid_parameter_assignment",  "grid_string","string")
+output_path   = keyword_values("regrid_parameter_assignment",  "output_path","string")
+fixfile_path  = keyword_values("regrid_parameter_assignment", "fixfile_path","string")
+grid_extent   = keyword_values("regrid_parameter_assignment",  "grid_extent","string")
+is_global     = keyword_values("regrid_parameter_assignment",    "is_global","string")
+subset_maxlat = keyword_values("regrid_parameter_assignment","subset_maxlat", "float")
+subset_minlat = keyword_values("regrid_parameter_assignment","subset_minlat", "float")
+subset_maxlon = keyword_values("regrid_parameter_assignment","subset_maxlon", "float")
+subset_minlon = keyword_values("regrid_parameter_assignment","subset_minlon", "float")
 
 ; create filename and overwrite if present
 
-if(grid_extent.eq."global") then
-  outname = output_path+"ufs-land_"+atm_res+"."+ocn_res+"_"+grid_version+"_corners.nc"
-elseif(grid_extent.eq."conus") then
-  outname = output_path+"ufs-land_"+atm_res+"."+ocn_res+"."+grid_extent+"_"+grid_version+"_corners.nc"
-elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
-  outname = output_path+"ufs-land_"+atm_res+"."+grid_extent+"_corners.nc"
-else
-  print("problem with grid_extent in extract_corners")
-  exit
-end if
+outname = output_path+"ufs-land_"+grid_string+"_corners.nc"
   system("if [ -e "+outname+" ]; then rm -f "+outname+ ";fi")
 newfile = addfile(outname,"c")
 
 ; set the maximum dimension
 
-if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+if(is_global.eq."True") then
   maskfile = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile1.nc","r")
-elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+else
   maskfile = addfile(fixfile_path+atm_res+"_oro_data.tile7.halo0.nc","r")
 end if
 
 maskdims = getfiledimsizes(maskfile)
 
 maxdim = maskdims(0)*maskdims(1)
-if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+if(is_global.eq."True") then
   numtiles = 6
   maxdim = maxdim * 6
-elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+else
   numtiles = 1
 end if
 
@@ -55,10 +51,10 @@ do itile = 1, numtiles
 
 print("Starting tile: "+itile)
 
- if(grid_extent.eq."global" .or. grid_extent.eq."conus") then
+ if(is_global.eq."True") then
    orography_file = addfile(fixfile_path+atm_res+"/"+atm_res+"."+ocn_res+"_oro_data.tile"+itile+".nc","r")
    grid_file = addfile(fixfile_path+atm_res+"/"+atm_res+"_grid.tile"+itile+".nc","r")
- elseif(grid_extent.eq."AQM" .or. grid_extent.eq."ARC") then
+ else
    orography_file = addfile(fixfile_path+"/"+atm_res+"_oro_data.tile7.halo0.nc","r")
    grid_file = addfile(fixfile_path+atm_res+"_grid.tile7.halo0.nc","r")
  end if
@@ -71,11 +67,11 @@ print("Starting tile: "+itile)
 
  ndims = dimsizes(inmask)
  
- if(grid_extent.eq."conus") then
+ if(grid_extent.eq."subset") then
 
    inmask = where(inmask.gt.0 .and. \
-                  inlat.gt.25  .and.  inlat.lt.53 .and. \
-                  inlon.gt.235 .and.  inlon.lt.293, 1, 0)
+                  inlat.gt.subset_minlat .and. inlat.lt.subset_maxlat .and. \
+                  inlon.gt.subset_minlon .and. inlon.lt.subset_maxlon, 1, 0)
  
  end if
 
@@ -107,6 +103,19 @@ newfile->latitude = latitude(0:nloc)
 newfile->longitude = longitude(0:nloc)
 newfile->latitude_corners = latitude_corners(0:nloc,:)
 newfile->longitude_corners = longitude_corners(0:nloc,:)
+
+newfile@atm_res       = atm_res
+newfile@ocn_res       = ocn_res
+newfile@grid_string   = grid_string
+newfile@fixfile_path  = fixfile_path
+newfile@grid_extent   = grid_extent
+newfile@is_global     = is_global
+if(grid_extent.eq."subset") then
+  newfile@subset_maxlat = subset_maxlat
+  newfile@subset_minlat = subset_minlat
+  newfile@subset_maxlon = subset_maxlon
+  newfile@subset_minlon = subset_minlon
+end if
 
 end
 

@@ -32,19 +32,28 @@ module load ncl/6.6.2
 #
 # atm_res      : fv3 grid resolution
 # ocn_res      : ocean resolution, not used for AQM or ARC regional grids
-# grid_version : hr3 - append directory date string (not supporting other global options for now)
+# grid_version : 20231027 - append directory date string
 #                AQM - AQM regional grid
 #                ARC - UFS-Arctic regional grid
 # fixfile_path : top level path for fix files
-# grid_extent  : global or conus for standard global FV3 or cutout regional
-#                AQM for AQM regional grid
-#                ARC for UFS-Arctic regional grid
+# grid_extent  : total - use all grids (e.g., global or entire regional)
+#                subset - regional cutout, limits below
+# subset_name  : if subset, name for subset, e.g., conus
+# subset_maxlat: cutout maximum latitude
+# subset_minlat: cutout minimum latitude
+# subset_maxlon: cutout maximum longitude
+# subset_minlon: cutout minimum longitude
 
-atm_res="C918"
+atm_res="C96"
 ocn_res="mx100"
-grid_version="ARC"
-fixfile_path="/scratch4/BMC/ufs-artic/Kristin.Barton/files/ufs_arctic_development/fix_files/mesh_files/C918/"
-grid_extent="ARC"
+grid_version="20231027"
+fixfile_path="/scratch3/NCEPDEV/global/role.glopara/fix/orog/"
+grid_extent="subset"
+subset_name="conus"
+subset_maxlat="53.0"
+subset_minlat="25.0"
+subset_maxlon="293.0"
+subset_minlon="235.0"
 
 #################################################################################
 #  shouldn't need to modify anything below
@@ -52,36 +61,30 @@ grid_extent="ARC"
 
 # set full fix file based on grid version
 
-if [ $grid_version = "hr3" ]; then 
-  fixfile_path=$fixfile_path"20231027/"
-elif [ $grid_version = "AQM" ]; then 
-  fixfile_path=$fixfile_path
-elif [ $grid_version = "ARC" ]; then 
-  fixfile_path=$fixfile_path
+if [[ $grid_version == "20231027" ]] ; then 
+  fixfile_path=$fixfile_path$grid_version"/"
+  is_global="True"
+  grid_string=$atm_res.$ocn_res
+  if [[ $grid_extent == "subset" ]]; then
+    grid_string=$grid_string.$subset_name
+  fi
+elif [[ $grid_version == "AQM" ]] || [[ $grid_version == "ARC" ]]; then 
+  grid_string=$atm_res.$grid_extent
+  is_global="False"
 else
-  echo "ERROR: unknown fixfile_path $fixfile_path"
+  echo "ERROR: unknown combination"
+  echo "ERROR: grid_version = $grid_version"
+  echo "ERROR: grid_extent = $grid_extent"
+  echo "NOTE:  subset not currently supported for regional grids"
   exit 1
 fi
 
-# the default location for output files is $atm_res.$ocn_res
-
-if [ $grid_extent = "global" ]; then 
-  output_path=$atm_res.$ocn_res"/"
-elif [ $grid_extent = "AQM" ]; then 
-  output_path=$atm_res.$grid_extent"/"
-elif [ $grid_extent = "ARC" ]; then 
-  output_path=$atm_res.$grid_extent"/"
-elif [ $grid_extent = "conus" ]; then 
-  output_path=$atm_res.$ocn_res.$grid_extent"/"
-else
-  echo "ERROR: unknown grid_extent $grid_extent"
-  exit 2
-fi
+output_path=$grid_string"/"
 
 if [ -d $output_path ]; then 
   echo "ERROR: directory $output_path exists and overwriting is prevented"
   echo "ERROR: remove $output_path and resubmit"
-  exit 3
+  exit 2
 else
   mkdir -p $output_path
 fi
@@ -90,10 +93,15 @@ fi
 
 echo "atm_res = $atm_res" > regrid_parameter_assignment
 echo "ocn_res = $ocn_res" >> regrid_parameter_assignment
-echo "grid_version = $grid_version" >> regrid_parameter_assignment
+echo "grid_string = $grid_string" >> regrid_parameter_assignment
 echo "output_path = $output_path" >> regrid_parameter_assignment
 echo "fixfile_path = $fixfile_path" >> regrid_parameter_assignment
 echo "grid_extent = $grid_extent" >> regrid_parameter_assignment
+echo "is_global = $is_global" >> regrid_parameter_assignment
+echo "subset_maxlat = $subset_maxlat" >> regrid_parameter_assignment
+echo "subset_minlat = $subset_minlat" >> regrid_parameter_assignment
+echo "subset_maxlon = $subset_maxlon" >> regrid_parameter_assignment
+echo "subset_minlon = $subset_minlon" >> regrid_parameter_assignment
 
 # create the grid corners file, this is used in follow-on ncl scripts and for other tools
 
@@ -107,4 +115,4 @@ eval "time ncl extract_static.ncl"
 
 eval "time ncl create_scrip.ncl"
 
-
+rm regrid_parameter_assignment
