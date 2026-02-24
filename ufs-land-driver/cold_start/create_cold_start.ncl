@@ -139,7 +139,9 @@ vegetation_type = (/ static_file->vegetation_category /)
 ; snow and canopy water set to zero
 
 snow_water_equivalent = 0.0
+snow_water_equivalent = where(vegetation_type.eq.15,600.0,snow_water_equivalent)
 snow_depth            = 0.0
+snow_depth            = where(vegetation_type.eq.15,2.0,snow_depth)
 canopy_water          = 0.0
 
 ; all temperatures set to 2m temperature, limit glacier to freezing
