@@ -30,4 +30,15 @@
 29 ncl regrid_to_vector.ncl yyyy_beg=2022 yyyy_end=2022 mm_beg=4 mm_end=6
 30 ncl regrid_to_vector.ncl yyyy_beg=2022 yyyy_end=2022 mm_beg=7 mm_end=9
 31 ncl regrid_to_vector.ncl yyyy_beg=2022 yyyy_end=2022 mm_beg=10 mm_end=12
-
+32 ncl regrid_to_vector.ncl yyyy_beg=2023 yyyy_end=2023 mm_beg=1 mm_end=3
+33 ncl regrid_to_vector.ncl yyyy_beg=2023 yyyy_end=2023 mm_beg=4 mm_end=6
+34 ncl regrid_to_vector.ncl yyyy_beg=2023 yyyy_end=2023 mm_beg=7 mm_end=9
+35 ncl regrid_to_vector.ncl yyyy_beg=2023 yyyy_end=2023 mm_beg=10 mm_end=12
+36 ncl regrid_to_vector.ncl yyyy_beg=2024 yyyy_end=2024 mm_beg=1 mm_end=3
+37 ncl regrid_to_vector.ncl yyyy_beg=2024 yyyy_end=2024 mm_beg=4 mm_end=6
+38 ncl regrid_to_vector.ncl yyyy_beg=2024 yyyy_end=2024 mm_beg=7 mm_end=9
+39 ncl regrid_to_vector.ncl yyyy_beg=2024 yyyy_end=2024 mm_beg=10 mm_end=12
+40 ncl regrid_to_vector.ncl yyyy_beg=2025 yyyy_end=2025 mm_beg=1 mm_end=3
+41 ncl regrid_to_vector.ncl yyyy_beg=2025 yyyy_end=2025 mm_beg=4 mm_end=6
+42 ncl regrid_to_vector.ncl yyyy_beg=2025 yyyy_end=2025 mm_beg=7 mm_end=9
+43 ncl regrid_to_vector.ncl yyyy_beg=2025 yyyy_end=2025 mm_beg=10 mm_end=12
