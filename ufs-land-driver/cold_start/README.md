@@ -17,21 +17,21 @@ Some standard grids and times may already be created here:
 
  set parameters for weights generation
  
-`atm_res`      : fv3 grid resolution [C48,C96,C192,C384,C768,C1152] 
+`atm_res`      : global or regional grid resolution [C48,C96,C192,C384,C768,C1152] 
 
-`ocn_res`      : ocean resolution [mx500,mx100,mx050,mx025] 
+`ocn_res`      : ocean resolution [mx500,mx100,mx050,mx025], not used for regional
 
-`grid_version` : fix file options [hr3] (only "hr3" = 20231027 fix files for now) 
+`grid_version` : fix file version [20231027 (global grids consistent with GFSv17), AQM (regional air quality grid), ARC (regional Arctic grid)] 
 
-`grid_extent`  : grid options [global,conus] (for now, only a hard-coded conus (25-53N,235-293E) option is available) 
+`grid_extent`  : grid options [total,subset] 
+ 
+`subset_name`  : if a subset grid, name for subset, e.g., conus
 
 `datm_source`  : data atmosphere source [ERA5,GDAS,CDAS]
 
 `datm_source_path` : base path where datm already exists, e.g., `/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/` 
 
 `static_file_path` : ufs-land-driver static file path (created in Step 1), e.g., `/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/` 
-
-`interpolation_method` : ESMF regrid method [bilinear,neareststod,nearestdtos,conserve]
 
 `yyyy` : year of desired cold start initial condition, e.g., 1999 
 
@@ -44,3 +44,6 @@ Some standard grids and times may already be created here:
 `timestep` : model timestep in minutes, e.g., 60 
 
 Outputs in current directory `atm_res`.`ocn_res` (`C96.mx100` example):
+
+`ERA5-C96.mx100_cold_start_1979-12-31_23:00:00.nc`:
+* Cold start IC from ERA5 regrid to C96.mx100 vector for simulation to start 1980-01-01 00:00:00
