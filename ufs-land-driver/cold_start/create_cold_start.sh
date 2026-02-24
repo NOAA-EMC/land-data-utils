@@ -13,7 +13,8 @@
 #SBATCH --account=fv3-cpu
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
-#SBATCH --job-name=create_cold_start
+#SBATCH --job-name=ufs-land-create_cold_start
+#SBATCH -o ufs-land-create_cold_start.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -21,10 +22,23 @@
 module purge
 module load ncl/6.6.2
 
+# set parameters for grid generation
+#
+# atm_res      : fv3 grid resolution
+# ocn_res      : ocean resolution, not used for AQM or ARC regional grids
+# grid_version : 20231027 - append directory date string
+#                AQM - AQM regional grid
+#                ARC - UFS-Arctic regional grid
+# fixfile_path : top level path for fix files
+# grid_extent  : total - use all grids (e.g., global or entire regional)
+#                subset - regional cutout, limits below
+# subset_name  : if subset, name for subset, e.g., conus
+
 atm_res="C96"
 ocn_res="mx100"
-grid_version="hr3"
-grid_extent="global"
+grid_version="20231027"
+grid_extent="total"
+subset_name="conus"
 datm_source="ERA5"
 datm_source_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/"
 static_file_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
@@ -38,33 +52,39 @@ timestep=60
 #  shouldn't need to modify anything below
 #################################################################################
 
-# the default location for output files is $atm_res.$ocn_res
-# create a variable $res, e.g., C96.mx100 or C96.mx100.conus
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [[ $grid_version == "20231027" ]] ; then 
+  fixfile_path=$fixfile_path$grid_version"/"
+  is_global="True"
+  grid_string=$atm_res.$ocn_res
+  if [[ $grid_extent == "subset" ]]; then
+    grid_string=$grid_string.$subset_name
+  fi
+elif [[ $grid_version == "AQM" ]] || [[ $grid_version == "ARC" ]]; then 
+  grid_string=$atm_res.$grid_extent
+  is_global="False"
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown combination"
+  echo "ERROR: grid_version = $grid_version"
+  echo "ERROR: grid_extent = $grid_extent"
+  echo "NOTE:  subset not currently supported for regional grids"
+  exit 1
 fi
 
-# create a variable $grid, e.g., C96.mx100_hr3 or C96.mx100.conus_hr3
-# create a variable $output_path, e.g., C96.mx100/ or C96.mx100.conus/
-
-grid=$res"_"$grid_version
-output_path=$res"/"
+output_path=$grid_string"/"
 
 if [ -d $output_path ]; then 
-  echo "BEWARE: output_path directory exists and overwriting is allowed"
+  echo "ERROR: directory $output_path exists and overwriting is prevented"
+  echo "ERROR: remove $output_path and resubmit"
+  exit 2
 else
-  echo "creating directory: "$output_path
   mkdir -p $output_path
 fi
 
 # create static filename and check if it exists
 
-static_filename=$static_file_path$output_path"ufs-land_"$grid"_static_fields.nc"
+static_filename=$static_file_path$output_path"ufs-land_"$grid_string"_static_fields.nc"
 
-if [ -e $static_filename ]; then 
+if [[ -e $static_filename ]]; then 
   echo "using static_filename:"$static_filename
 else
   echo "ERROR: static_filename does not exist: "$static_filename
@@ -80,9 +100,9 @@ echo "mm = $mm" >> parameter_assignment
 echo "dd = $dd" >> parameter_assignment
 echo "hh = $hh" >> parameter_assignment
 echo "timestep = $timestep" >> parameter_assignment
-echo "ic_preamble = "$output_path$datm_source"-"$grid >> parameter_assignment
+echo "ic_preamble = "$output_path$datm_source"-"$grid_string >> parameter_assignment
 echo "datm_source = "$datm_source >> parameter_assignment
-echo "datm_source_path = "$datm_source_path$output_path$datm_source"-"$grid >> parameter_assignment
+echo "datm_source_path = "$datm_source_path$output_path$datm_source"-"$grid_string >> parameter_assignment
 echo "static_filename = "$static_filename >> parameter_assignment
 
 eval "time ncl create_cold_start.ncl"

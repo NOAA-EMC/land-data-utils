@@ -7,6 +7,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 begin
 
+datm_source_file = keyword_values("regrid_parameter_assignment","datm_source_file","string")
+ datm_scrip_file = keyword_values("regrid_parameter_assignment","datm_scrip_file" ,"string")
+
 ;************************************************
 ; get datm fields
 ;************************************************

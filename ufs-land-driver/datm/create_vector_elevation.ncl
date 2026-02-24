@@ -6,6 +6,12 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 begin
 
+static_filename           = keyword_values("regrid_parameter_assignment","static_filename"          ,"string")
+elevation_source_filename = keyword_values("regrid_parameter_assignment","elevation_source_filename","string")
+datm_source               = keyword_values("regrid_parameter_assignment","datm_source"              ,"string")
+weights_filename          = keyword_values("regrid_parameter_assignment","weights_filename"         ,"string")
+elevation_filename        = keyword_values("regrid_parameter_assignment","elevation_filename"       ,"string")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; model elevation comes from vector static file
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -3,6 +3,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 begin
 
          elevation_filename = keyword_values("regrid_parameter_assignment",         "elevation_filename","string")
+            static_filename = keyword_values("regrid_parameter_assignment",            "static_filename","string")
+                grid_extent = keyword_values("regrid_parameter_assignment",                "grid_extent","string")
 precip_interpolation_method = keyword_values("regrid_parameter_assignment","precip_interpolation_method","string")
       interpolation_method1 = keyword_values("regrid_parameter_assignment",      "interpolation_method1","string")
       interpolation_method2 = keyword_values("regrid_parameter_assignment",      "interpolation_method2","string")
@@ -30,6 +32,24 @@ if(do_elevation_adjustment) then
   elevation_difference = infile->elevation_difference
   elevation_difference = where(elevation_difference .gt.      elevation_difference_limit,      elevation_difference_limit, elevation_difference)
   elevation_difference = where(elevation_difference .lt. -1.0*elevation_difference_limit, -1.0*elevation_difference_limit, elevation_difference)
+end if
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; get some grid information from the static file
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+infile = addfile(static_filename,"r")
+atm_res = infile@atm_res
+ocn_res = infile@ocn_res
+grid_string = infile@grid_string
+fixfile_path = infile@fixfile_path
+grid_extent = infile@grid_extent
+is_global = infile@is_global
+if(grid_extent.eq."subset") then
+  subset_maxlat = infile@subset_maxlat
+  subset_minlat = infile@subset_minlat
+  subset_maxlon = infile@subset_maxlon
+  subset_minlon = infile@subset_minlon
 end if
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -175,15 +195,30 @@ do imm = mm_beg, mm_end
   if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
 
     outfile->$precipitation_method1_varname$ = precipitation_method1
+    delete(precipitation_method1)
 
   end if
   
-  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method1") then
+  if(precip_interpolation_method .eq. "all" .or. precip_interpolation_method .eq. "method2") then
 
     outfile->$precipitation_method2_varname$ = precipitation_method2
+    delete(precipitation_method2)
 
   end if
   
+  outfile@atm_res       = atm_res
+  outfile@ocn_res       = ocn_res
+  outfile@grid_string   = grid_string
+  outfile@fixfile_path  = fixfile_path
+  outfile@grid_extent   = grid_extent
+  outfile@is_global     = is_global
+  if(grid_extent.eq."subset") then
+    outfile@subset_maxlat = subset_maxlat
+    outfile@subset_minlat = subset_minlat
+    outfile@subset_maxlon = subset_maxlon
+    outfile@subset_minlon = subset_minlon
+  end if
+
 ;  system("ncks -h -O -4 -L 1 "+outname+" "+outname)
   
   delete(data)
@@ -195,8 +230,6 @@ do imm = mm_beg, mm_end
   delete(specific_humidity)
   delete(speed)
   delete(surface_pressure)
-  delete(precipitation_method1)
-  delete(precipitation_method2)
 
 end do
 end do
