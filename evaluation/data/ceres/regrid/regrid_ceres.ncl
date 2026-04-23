@@ -7,7 +7,7 @@ data_source_directory = keyword_values("regrid_parameter_assignment","data_sourc
 destination_directory = keyword_values("regrid_parameter_assignment","destination_directory","string")
      weights_filename = keyword_values("regrid_parameter_assignment","weights_filename","string")
       vector_filename = keyword_values("regrid_parameter_assignment","vector_filename","string")
-                  res = keyword_values("regrid_parameter_assignment","res","string")
+          grid_string = keyword_values("regrid_parameter_assignment","grid_string","string")
            yyyy_begin = keyword_values("regrid_parameter_assignment","yyyy_begin","integer")
              yyyy_end = keyword_values("regrid_parameter_assignment","yyyy_end","integer")
 
@@ -42,7 +42,7 @@ do iyyyy = yyyy_begin, yyyy_end
   ceres_time = infile->time
 
 ;;;;;;;;;;;;;;;;;;;;
-  outname  = outname_start+iyyyy+"."+res+".nc"
+  outname  = outname_start+iyyyy+"."+grid_string+".nc"
 
   system("if [ -e "+outname+" ]; then rm -f "+outname+ ";fi")
   outfile = addfile(outname,"c")

@@ -3,6 +3,9 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 begin
 
+data_source_file = keyword_values("regrid_parameter_assignment","data_source_file","string")
+ data_scrip_file = keyword_values("regrid_parameter_assignment","data_scrip_file" ,"string")
+
 ;************************************************
 ; get ceres fields
 ;************************************************
