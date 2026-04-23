@@ -1,18 +1,16 @@
 
-load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 begin
 
-       bukovsky_filename = "/scratch2/NCEPDEV/land/data/evaluation/BUKOVSKY/combined/bukovsky_regions.nc"
- bukovsky_scrip_filename = "/scratch2/NCEPDEV/land/data/evaluation/BUKOVSKY/bukovsky_SCRIP.nc"
-
+data_source_file = keyword_values("regrid_parameter_assignment","data_source_file","string")
+ data_scrip_file = keyword_values("regrid_parameter_assignment","data_scrip_file" ,"string")
 
 ;************************************************
 ; get bukovsky fields
 ;************************************************
 
-  bukovsky_file = addfile(bukovsky_filename, "r")
+  bukovsky_file = addfile(data_source_file, "r")
   
   bukovsky_lat = bukovsky_file->lat
 ;  bukovsky_lat@units = "degrees_north"
@@ -26,7 +24,7 @@ begin
   Opt@PrintTimings   = True
   Opt@Title          = "Bukovsky Grid"
 
-  rectilinear_to_SCRIP(bukovsky_scrip_filename,bukovsky_lat,bukovsky_lon,Opt)
+  rectilinear_to_SCRIP(data_scrip_file,bukovsky_lat,bukovsky_lon,Opt)
 
 end
 
