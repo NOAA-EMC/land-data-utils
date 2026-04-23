@@ -11,6 +11,7 @@
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
 #SBATCH --job-name=regrid_ceres
+#SBATCH -o regrid_ceres.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -34,37 +35,44 @@ yyyy_begin="2011"
 yyyy_end="2025"
 atm_res="C96"
 ocn_res="mx100"
-grid_version="hr3"
+grid_version="20231027"
+grid_extent="total"
+subset_name="conus"
 data_source="CERES"
 data_source_directory="/scratch4/NCEPDEV/land/data/evaluation/CERES/yearly/"
 data_destination_directory="/scratch4/NCEPDEV/land/data/evaluation/CERES/"
 weights_directory="/scratch4/NCEPDEV/land/data/evaluation/CERES/weights/"
 vector_directory="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
 interpolation_method="neareststod"
-grid_extent="global"
 
 #################################################################################
 #  shouldn't need to modify anything below
 #################################################################################
 
-# the default location for output files is $atm_res.$ocn_res
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [[ $grid_version == "20231027" ]] ; then 
+  grid_string=$atm_res.$ocn_res
+  if [[ $grid_extent == "subset" ]]; then
+    grid_string=$grid_string.$subset_name
+  fi
+elif [[ $grid_version == "AQM" ]] || [[ $grid_version == "ARC" ]]; then 
+  grid_string=$atm_res.$grid_extent
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown combination"
+  echo "ERROR: grid_version = $grid_version"
+  echo "ERROR: grid_extent = $grid_extent"
+  echo "NOTE:  subset not currently supported for regional grids"
+  exit 1
 fi
 
-grid=$res"_hr3"
-destination_directory=$data_destination_directory$res"/"
-weights_filename=$weights_directory$res"/"$data_source"-"$grid"_"$interpolation_method"_wts.nc"
-vector_filename=$vector_directory$res"/ufs-land_"$grid"_corners.nc"
+destination_directory=$data_destination_directory$grid_string"/"
+weights_filename=$weights_directory$grid_string"/"$data_source"-"$grid_string"_"$interpolation_method"_wts.nc"
+vector_filename=$vector_directory$grid_string"/ufs-land_"$grid_string"_corners.nc"
 
 echo "data_source_directory = $data_source_directory" > regrid_parameter_assignment
 echo "destination_directory = $destination_directory" >> regrid_parameter_assignment
 echo "weights_filename = $weights_filename" >> regrid_parameter_assignment
 echo "vector_filename = $vector_filename" >> regrid_parameter_assignment
-echo "res = $res" >> regrid_parameter_assignment
+echo "grid_string = $grid_string" >> regrid_parameter_assignment
 echo "yyyy_begin = $yyyy_begin" >> regrid_parameter_assignment
 echo "yyyy_end = $yyyy_end" >> regrid_parameter_assignment
 

@@ -14,6 +14,7 @@
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
 #SBATCH --job-name=regrid_weights
+#SBATCH -o create_weights.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -25,14 +26,30 @@ module load stack-intel-oneapi-mpi/2021.13
 module load esmf/8.8.0
 module load ncl/6.6.2
 
+# set parameters for weights generation
+#
+# atm_res      : fv3 grid resolution
+# ocn_res      : ocean resolution, not used for AQM or ARC regional grids
+# grid_version : 20231027 - append directory date string
+#                AQM - AQM regional grid
+#                ARC - UFS-Arctic regional grid
+# grid_extent  : total - use all grids (e.g., global or entire regional)
+#                subset - regional cutout, limits below
+# subset_name  : if subset, name for subset, e.g., conus
+# data_source  : CERES
+# data_source_file       : a datm source file to extract info for SCRIP file
+# interpolation_method   : ESMF method, e.g., bilinear,neareststod
+# destination_scrip_path : location of the destination SCRIP file
+
 atm_res="C96"
 ocn_res="mx100"
-grid_version="hr3"
+grid_version="20231027"
+grid_extent="total"
+subset_name="conus"
 data_source="CERES"
 data_source_file="/scratch4/NCEPDEV/land/data/evaluation/CERES/yearly/CERES_radiation_2011.nc"
 interpolation_method="neareststod"
 destination_scrip_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
-grid_extent="global"
 
 #################################################################################
 #  shouldn't need to modify anything below
@@ -42,26 +59,31 @@ grid_extent="global"
 
 data_scrip_file=$data_source"_SCRIP.nc"
 
-cmdparm="'data_scrip_file="\"$data_scrip_file"\"' "
-cmdparm=$cmdparm"'data_source_file="\"$data_source_file"\"' "
+# create the ncl parameter file
 
-echo "variable list sent to NCL"
-echo $cmdparm
+echo "data_scrip_file = $data_scrip_file" > regrid_parameter_assignment
+echo "data_source_file = $data_source_file" >> regrid_parameter_assignment
 
-eval "time ncl create_ceres_scrip.ncl $cmdparm"
+eval "time ncl create_ceres_scrip.ncl"
 
-# the default location for output files is $atm_res.$ocn_res
-
-if [ $grid_extent = "global" ]; then 
-  res=$atm_res.$ocn_res
+if [[ $grid_version == "20231027" ]] ; then 
+  grid_string=$atm_res.$ocn_res
+  if [[ $grid_extent == "subset" ]]; then
+    grid_string=$grid_string.$subset_name
+  fi
+elif [[ $grid_version == "AQM" ]] || [[ $grid_version == "ARC" ]]; then 
+  grid_string=$atm_res.$grid_extent
 else
-  res=$atm_res.$ocn_res.$grid_extent
+  echo "ERROR: unknown combination"
+  echo "ERROR: grid_version = $grid_version"
+  echo "ERROR: grid_extent = $grid_extent"
+  echo "NOTE:  subset not currently supported for regional grids"
+  exit 1
 fi
 
-grid=$res"_hr3"
-output_path=$res"/"
-weights_filename=$data_source"-"$grid"_"$interpolation_method"_wts.nc"
-destination_scrip_file=$destination_scrip_path"/"$res"/ufs-land_"$grid"_SCRIP.nc"
+output_path=$grid_string"/"
+
+destination_scrip_file=$destination_scrip_path$output_path"ufs-land_"$grid_string"_SCRIP.nc"
 
 if [ -d $output_path ]; then 
   echo "BEWARE: output_path directory exists and overwriting is allowed"
@@ -71,6 +93,7 @@ fi
 
 # create weights file
 
+weights_filename=$data_source"-"$grid_string"_"$interpolation_method"_wts.nc"
 echo "Creating weights file: "$weights_filename
 
 srun -n $SLURM_NTASKS time ESMF_RegridWeightGen --netcdf4 --ignore_degenerate \
@@ -79,3 +102,5 @@ srun -n $SLURM_NTASKS time ESMF_RegridWeightGen --netcdf4 --ignore_degenerate \
        --weight $output_path$weights_filename --method $interpolation_method
 
 rm $data_scrip_file
+rm regrid_parameter_assignment
+rm PET*
