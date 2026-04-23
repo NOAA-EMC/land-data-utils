@@ -41,8 +41,8 @@ module load ncl/6.6.2
 # interpolation_method   : ESMF method, e.g., bilinear,neareststod
 # destination_scrip_path : location of the destination SCRIP file
 
-atm_res="C192"
-ocn_res="mx025"
+atm_res="C96"
+ocn_res="mx100"
 grid_version="20231027"
 grid_extent="total"
 subset_name="conus"
