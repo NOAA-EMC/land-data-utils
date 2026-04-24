@@ -13,8 +13,8 @@
 #SBATCH --account=fv3-cpu
 #
 # -- Set the name of the job, or Slurm will default to the name of the script
-#SBATCH --job-name=regrid_bukovsky
-#SBATCH -o regrid_bukovsky.out
+#SBATCH --job-name=regrid_basins
+#SBATCH -o regrid_basins.out
 #
 # -- Tell the batch system to set the working directory to the current working directory
 #SBATCH --chdir=.
@@ -36,7 +36,7 @@ module load ncl/6.6.2
 # grid_extent  : total - use all grids (e.g., global or entire regional)
 #                subset - regional cutout, limits below
 # subset_name  : if subset, name for subset, e.g., conus
-# data_source  : BUKOVSKY
+# data_source  : basins
 # data_source_file       : a datm source file to extract info for SCRIP file
 # interpolation_method   : ESMF method, e.g., bilinear,neareststod
 # destination_scrip_path : location of the destination SCRIP file
@@ -46,9 +46,9 @@ ocn_res="mx100"
 grid_version="20231027"
 grid_extent="total"
 subset_name="conus"
-data_source="BUKOVSKY"
-data_source_file="/scratch4/NCEPDEV/land/data/evaluation/BUKOVSKY/combined/bukovsky_regions.nc"
-data_destination_directory="/scratch4/NCEPDEV/land/data/evaluation/BUKOVSKY/"
+data_source="basins"
+data_source_file="/scratch4/NCEPDEV/land/data/evaluation/basins/world_basins.nc"
+data_destination_directory="/scratch4/NCEPDEV/land/data/evaluation/basins/"
 interpolation_method="neareststod"
 destination_scrip_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
 
@@ -65,7 +65,7 @@ data_scrip_file=$data_source"_SCRIP.nc"
 echo "data_scrip_file = $data_scrip_file" > regrid_parameter_assignment
 echo "data_source_file = $data_source_file" >> regrid_parameter_assignment
 
-eval "time ncl create_bukovsky_scrip.ncl"
+eval "time ncl create_grdc_scrip.ncl"
 
 if [[ $grid_version == "20231027" ]] ; then 
   grid_string=$atm_res.$ocn_res
@@ -119,7 +119,7 @@ else
   mkdir -p $destination_directory
 fi
 
-eval "time ncl regrid_bukovsky.ncl"
+eval "time ncl regrid_basins.ncl"
 
 rm regrid_parameter_assignment
 rm -Rf $output_path
