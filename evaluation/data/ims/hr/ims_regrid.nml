@@ -1,0 +1,10 @@
+&ims_regrid_nml
+ destination_lons=3072
+ destination_lats=1536
+ obs_source="IMS1km"
+ fv3_grid="hr"
+ land_fix_filename="/scratch2/NCEPDEV/land/data/fix/20231027/C768/fv3_SCRIP_C768_GRIDSPEC_lon3072_lat1536.gaussian.neareststod.nc"
+ map_filepath="/scratch2/NCEPDEV/land/data/evaluation/IMS/fix_20231027/gaussianGrid_mapping/"
+ ims_filepath="/scratch2/NCEPDEV/land/data/DA/snow_ice_cover/IMS/"
+ regrid_outpath="/scratch2/NCEPDEV/land/data/evaluation/IMS/"
+/
