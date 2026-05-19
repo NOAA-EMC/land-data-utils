@@ -1,0 +1,8 @@
+&modis_regrid_nml
+ fv3_grid="C1152"
+ land_static_filename="/scratch2/NCEPDEV/land/data/ufs-land-driver/vector_inputs/C1152.mx025/ufs-land_C1152.mx025_hr3_static_fields.nc"
+  modis_regrid_filename="/scratch2/NCEPDEV/land/data/evaluation/MODIS/fix_20231027/land_mapping_files/MODIS0.05_to_land_mapping.C1152.nc"
+ modis_land_filename="/scratch2/NCEPDEV/land/data/evaluation/MODIS/landcover/MCD12C1.A2021001.061.nc"
+ modis_filepath="/scratch2/NCEPDEV/land/data/evaluation/MODIS/albedo/orig"
+ regrid_outpath="/scratch2/NCEPDEV/land/data/evaluation/MODIS/albedo"
+/
