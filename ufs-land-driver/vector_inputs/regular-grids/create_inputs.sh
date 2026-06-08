@@ -28,19 +28,18 @@ module load ncl/6.6.2
 
 # set parameters for grid generation
 #
+# grid_string  : regular grid name, e.g., global_0.1
+#
+# the following describe the existing c-grid to extract from
 # atm_res      : fv3 grid resolution
 # ocn_res      : ocean resolution, not used for AQM or ARC regional grids
 # grid_version : 20231027 - append directory date string
 #                AQM - AQM regional grid
 #                ARC - UFS-Arctic regional grid
-# fixfile_path : top level path for fix files
 # grid_extent  : total - use all grids (e.g., global or entire regional)
 #                subset - regional cutout, limits below
 # subset_name  : if subset, name for subset, e.g., conus
-# subset_maxlat: cutout maximum latitude
-# subset_minlat: cutout minimum latitude
-# subset_maxlon: cutout maximum longitude
-# subset_minlon: cutout minimum longitude
+# source_path  : path to the vector_inputs
 
 grid_string="global_0.1"
 atm_res="C1152"
