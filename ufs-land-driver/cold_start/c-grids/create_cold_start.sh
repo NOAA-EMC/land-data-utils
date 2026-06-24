@@ -52,7 +52,7 @@ timestep=60
 #  shouldn't need to modify anything below
 #################################################################################
 
-if [[ $grid_version == "20231027" ]] ; then 
+if [[ $grid_version == "20231027" ]] || [[ $grid_version == "20240917" ]] ; then 
   fixfile_path=$fixfile_path$grid_version"/"
   is_global="True"
   grid_string=$atm_res.$ocn_res

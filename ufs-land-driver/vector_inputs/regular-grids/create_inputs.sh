@@ -53,7 +53,7 @@ source_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/"
 #  shouldn't need to modify anything below
 #################################################################################
 
-if [[ $grid_version == "20231027" ]] ; then 
+if [[ $grid_version == "20231027" ]] || [[ $grid_version == "20240917" ]] ; then 
   source_grid_string=$atm_res.$ocn_res
   if [[ $grid_extent == "subset" ]]; then
     source_grid_string=$source_grid_string.$subset_name

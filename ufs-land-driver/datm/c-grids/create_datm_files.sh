@@ -79,7 +79,7 @@ else
   exit 1
 fi
 
-if [[ $grid_version == "20231027" ]] ; then 
+if [[ $grid_version == "20231027" ]] || [[ $grid_version == "20240917" ]] ; then 
   grid_string=$atm_res.$ocn_res
   if [[ $grid_extent == "subset" ]]; then
     grid_string=$grid_string.$subset_name
