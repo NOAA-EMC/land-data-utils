@@ -65,7 +65,7 @@ echo "datm_source_file = $datm_source_file" >> regrid_parameter_assignment
 
 eval "time ncl create_datm_scrip.ncl"
 
-if [[ $grid_version == "20231027" ]] ; then 
+if [[ $grid_version == "20231027" ]] || [[ $grid_version == "20240917" ]] ; then 
   grid_string=$atm_res.$ocn_res
   if [[ $grid_extent == "subset" ]]; then
     grid_string=$grid_string.$subset_name

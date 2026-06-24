@@ -14,33 +14,19 @@
 #SBATCH --chdir=.
 #
 # -- Request tasks, this should correspond to the number of lines in your regrid-tasks file
-#SBATCH --ntasks=92
+#SBATCH --ntasks=20
 #
 # -- Specify a maximum wallclock
-# -- C96  : ~30 minutes  C96 conus : ~25 minutes
-# -- C192 : ~30 minutes  ; for CORe monthly "sbatch --mem=15g " 3g/task
-# -- C384 : ~1 hours
-# -- C768 : ~1.5 hours
-# -- C1152: ~3 hours; need to run "sbatch --mem=32g "; not needed after refactor
-# -- C981 ARC: ~30 minutes
+# -- global_0.1  : ~1 hours
 #
-#SBATCH --time=0:30:00
+#SBATCH --time=1:00:00
 
 module purge
 module load ncl/6.6.2
 
 # set parameters for datm generation
 #
-# atm_res      : fv3 grid resolution
-# ocn_res      : ocean resolution, not used for AQM or ARC regional grids
-# grid_version : 20231027 - append directory date string
-#                AQM - AQM regional grid
-#                ARC - UFS-Arctic regional grid
-# fixfile_path : top level path for fix files
-# grid_extent  : total - use all grids (e.g., global or entire regional)
-#                subset - regional cutout, limits below
-# subset_name  : if subset, name for subset, e.g., conus
-#
+# grid_string                 : regular grid name, e.g., global_0.1
 # datm_source                 : ERA5 or CORe or GDAS or CDAS
 # datm_source_path            : path to datm source files
 # elevation_source_filename   : path to datm elevation file
@@ -51,11 +37,7 @@ module load ncl/6.6.2
 # preicp_interpolation_method : "method1","method2","all"
 # regrid_tasks_file           : file to split the regrid task across processors
 
-atm_res="C96"
-ocn_res="mx100"
-grid_version="20231027"
-grid_extent="total"
-subset_name="conus"
+grid_string="global_0.1"
 datm_source="ERA5"
 datm_source_path="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/"
 elevation_source_filename="/scratch4/NCEPDEV/land/data/ufs-land-driver/datm/ERA5/original/elevation/e5.oper.invariant.128_129_z.ll025sc.1979010100_1979010100.nc"
@@ -76,21 +58,6 @@ if [[ -e $elevation_source_filename ]]; then
   echo "using elevation_source_filename:"$elevation_source_filename
 else
   echo "ERROR: elevation_source_filename does not exist"
-  exit 1
-fi
-
-if [[ $grid_version == "20231027" ]] ; then 
-  grid_string=$atm_res.$ocn_res
-  if [[ $grid_extent == "subset" ]]; then
-    grid_string=$grid_string.$subset_name
-  fi
-elif [[ $grid_version == "AQM" ]] || [[ $grid_version == "ARC" ]]; then 
-  grid_string=$atm_res.$grid_extent
-else
-  echo "ERROR: unknown combination"
-  echo "ERROR: grid_version = $grid_version"
-  echo "ERROR: grid_extent = $grid_extent"
-  echo "NOTE:  subset not currently supported for regional grids"
   exit 1
 fi
 
@@ -166,8 +133,6 @@ eval "/usr/bin/time ncl create_vector_elevation.ncl"
 echo "Creating datm files"
 
 echo "elevation_filename = $elevation_filename" > regrid_parameter_assignment
-echo "static_filename = $static_filename" >> regrid_parameter_assignment
-echo "grid_extent = $grid_extent" >> regrid_parameter_assignment
 echo "weights_method1_filename = $weights_method1_filename" >> regrid_parameter_assignment
 echo "weights_method2_filename = $weights_method2_filename" >> regrid_parameter_assignment
 echo "precip_interpolation_method = $precip_interpolation_method" >> regrid_parameter_assignment
