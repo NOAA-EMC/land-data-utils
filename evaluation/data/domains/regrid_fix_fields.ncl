@@ -4,6 +4,7 @@ begin
 atm_res          = keyword_values("regrid_parameter_assignment","atm_res","string")
 ocn_res          = keyword_values("regrid_parameter_assignment","ocn_res","string")
 grid_version     = keyword_values("regrid_parameter_assignment","grid_version","string")
+grid_path        = keyword_values("regrid_parameter_assignment","grid_path","string")
 weights_filename = keyword_values("regrid_parameter_assignment","weights_filename","string")
 variable2regrid  = keyword_values("regrid_parameter_assignment","variable2regrid","string")
 output_filename  = keyword_values("regrid_parameter_assignment","output_filename","string")
@@ -32,7 +33,7 @@ else
 end if
 
 do itile = 1, 6
-  tile_filename = "/scratch3/NCEPDEV/global/role.glopara/fix/orog/"+grid_version+"/"+atm_res+"/sfc/"+atm_res+"."+ocn_res+"."+variable2regrid+".tile"+itile+".nc"
+  tile_filename = grid_path+grid_version+"/"+atm_res+"/sfc/"+atm_res+"."+ocn_res+"."+variable2regrid+".tile"+itile+".nc"
   tile_file = addfile(tile_filename,"r")
   print("accessing file: "+tile_filename)
   if(variable2regrid.eq."vegetation_greenness") then
@@ -84,6 +85,13 @@ if(variable2regrid.eq."vegetation_greenness") then
 else
  outfile->$variable2regrid$ = var_mapped  
 end if
+
+outfile@atm_res          = atm_res
+outfile@ocn_res          = ocn_res
+outfile@grid_version     = grid_version
+outfile@grid_path        = grid_path
+outfile@weights_filename = weights_filename
+
 
 end
 

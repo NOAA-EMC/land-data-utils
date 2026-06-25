@@ -29,21 +29,25 @@ module load ncl/6.6.2
 
 # set parameters for weights generation
 #
-# atm_res               : fv3 grid resolution
-# ocn_res               : ocean resolution, not used for AQM or ARC regional grids
-# out_res               : output resolution of ncep grid: 1p00, 0p50, 0p25, sfc
-# variable2regrid       : variable name, both in the filename and name in file
-# destination_directory : location to put the resulting file
-# grid_version          : 20231027 - directory from fix archive
-# interpolation_method  : ESMF method, e.g., bilinear,neareststod
+# atm_res                  : fv3 grid resolution
+# ocn_res                  : ocean resolution, not used for AQM or ARC regional grids
+# out_res                  : output resolution of ncep grid: 1p00, 0p50, 0p25, sfc
+# variable2regrid          : variable name, both in the filename and name in file
+# destination_directory    : location to put the resulting file
+# grid_version             : 20231027 - directory from fix archive
+# grid_path                : path to original source grid data, e.g., /scratch3/NCEPDEV/global/role.glopara/fix/orog/
+# interpolation_method     : ESMF method, e.g., bilinear,neareststod
+# add_filename_description : additional text to add to filename
 
-atm_res="C1152"
+atm_res="C192"
 ocn_res="mx025"
-out_res="0p25"
-variable2regrid="vegetation_type"
+out_res="0p50"
+variable2regrid="soil_type"
 destination_directory="/scratch4/NCEPDEV/land/data/evaluation/domains/output_grids/"
 grid_version="20231027"
+grid_path="/scratch3/NCEPDEV/global/role.glopara/fix/orog/"
 interpolation_method="neareststod"
+add_filename_description=""
 
 #################################################################################
 #  shouldn't need to modify anything below
@@ -93,21 +97,28 @@ srun -n $SLURM_NTASKS time ESMF_RegridWeightGen --netcdf4 --ignore_degenerate \
 rm $destination_scrip_file
 rm PET*
 
-output_filename=$destination_directory$atm_res.$ocn_res"-"$out_res"."$variable2regrid".nc"
+output_filename=$destination_directory$atm_res.$ocn_res"-"$out_res"."$variable2regrid
 if [[ $variable2regrid == "vegetation_greenness" ]] ; then 
-  output_filename=$destination_directory$atm_res.$ocn_res"-"$out_res".vegetation_fraction.nc"
+  output_filename=$destination_directory$atm_res.$ocn_res"-"$out_res".vegetation_fraction"
+fi
+if [[ $add_filename_description == "" ]] ; then 
+  output_filename=$output_filename".nc"
+else
+  output_filename=$output_filename"."$add_filename_description".nc"
 fi
 
 echo "Creating output_filename: $output_filename"
 echo "atm_res = $atm_res"
 echo "ocn_res = $ocn_res"
 echo "grid_version = $grid_version"
+echo "grid_path = $grid_path"
 echo "weights_filename = $weights_filename"
 echo "variable2regrid = $variable2regrid"
 
 echo "atm_res = $atm_res" > regrid_parameter_assignment
 echo "ocn_res = $ocn_res" >> regrid_parameter_assignment
 echo "grid_version = $grid_version" >> regrid_parameter_assignment
+echo "grid_path = $grid_path" >> regrid_parameter_assignment
 echo "weights_filename = $weights_filename" >> regrid_parameter_assignment
 echo "variable2regrid = $variable2regrid" >> regrid_parameter_assignment
 echo "output_filename = $output_filename" >> regrid_parameter_assignment
