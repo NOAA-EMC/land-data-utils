@@ -11,8 +11,8 @@ static_file_name = "/scratch4/NCEPDEV/land/data/ufs-land-driver/vector_inputs/gl
 
 ; create vectors of locations to find (lon ranges -180:180)
 
-lats2find = (/  18.5,  42.75,  37.05, -2.55,  -2.55, -19.35, 19.05 /)
-lons2find = (/ 48, -89.95, -77.55, 21.75, -68.85, 133.05, 80.85 /)
+lats2find = (/  35.25,  42.75,  37.05, -2.55,  -2.55, -19.35, 19.05 /)
+lons2find = (/ -82.95, -89.95, -77.55, 21.75, -68.85, 133.05, 80.85 /)
 
 ; print_level: 0 = only print final location
 ;              1 = also print search results
@@ -22,6 +22,10 @@ print_level = 0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; shouldn't need to modify below this line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; longitude in static files is 0:360
+
+lons2find = where(lons2find.lt.0,lons2find+360.0,lons2find)
 
 infile = addfile(static_file_name,"r")
 latitude = infile->latitude

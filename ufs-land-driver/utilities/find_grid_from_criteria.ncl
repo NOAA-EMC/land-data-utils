@@ -16,21 +16,29 @@ mask_file_name   = "/scratch4/NCEPDEV/land/data/evaluation/masks/global_testing/
 vegetation_type_search = True          ; True or False
 vegetation2find        = 16            ; vegetation type to find
 
-soil_type_search       = False         ; True or False
+soil_type_search       = True          ; True or False
 soil2find              = 7             ; soil type to find
 
 mask_search            = True          ; True or False
 region2find            = "GreatBasin"  ; region name from the mask_file
+
+latlon_search          = True          ; True or False
+latbox_max             = 50.0          ; maximum latitude of lat/lon region
+latbox_min             = 30.0          ; minimum latitude of lat/lon region
+lonbox_max             = 270.0         ; maximum longitude (0:360) of lat/lon region
+lonbox_min             = 230.0        ; minimum longitude (0:360) of lat/lon region
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; shouldn't need to modify below this line
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 num_locations = 0
-if(vegetation_type_search .or. soil_type_search) then
+if(vegetation_type_search .or. soil_type_search .or. latlon_search) then
   infile = addfile(static_file_name,"r")
   vegetation_type = infile->vegetation_category
   soil_type = infile->soil_category
+  latitude = infile->latitude
+  longitude = infile->longitude
   num_locations = dimsizes(vegetation_type)
 end if
 
@@ -75,6 +83,15 @@ do iloc = 0, num_locations-1
     end if
   end if
 
+  if(latlon_search .and. found) then
+    if( latitude(iloc) .ge. latbox_min .and.  latitude(iloc) .le. latbox_max .and. \
+       longitude(iloc) .ge. lonbox_min .and. longitude(iloc) .le. lonbox_max) then
+      found = True
+    else
+      found = False
+    end if
+  end if
+
   if(found) then
     print("Found first location with the criteria: ")
     if(vegetation_type_search) then
@@ -89,10 +106,16 @@ do iloc = 0, num_locations-1
       print(" Region: "+region2find)
     end if
 
+    if(latlon_search) then
+      print(" Lat/Lon Box: ["+latbox_min+":"+latbox_max+","+lonbox_min+":"+lonbox_max+"]")
+    end if
+
     print("at 1-based location: "+(iloc+1))
     print(" Vegetation type: "+vegetation_type(iloc))
     print(" Soil type: "+soil_type(iloc))
-    print(" Region: "+region_mask(iloc))
+    print(" Region: "+region2find)
+    print(" Latitude: "+latitude(iloc))
+    print(" Longitude: "+longitude(iloc))
     exit
   end if
 
@@ -110,6 +133,10 @@ end if
 
 if(mask_search) then
   print("Region: "+region2find)
+end if
+
+if(latlon_search) then
+  print(" Lat/Lon Box: ["+latbox_min+":"+latbox_max+","+lonbox_min+":"+lonbox_max+"]")
 end if
 
 end
