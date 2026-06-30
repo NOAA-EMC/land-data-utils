@@ -19,6 +19,10 @@ longitude_in = grid_file->$grid_longitude_name$
      data_in = grid_file->$grid_variable$
    data_mask = .not.ismissing(data_in)
 
+; make longitude conform to [0:360]
+
+longitude_in = where(longitude_in.lt.0,longitude_in+360.0,longitude_in)
+
 ; create filename and overwrite if present
 
 outname = output_path+"ufs-land_"+grid_string+"_corners.nc"
